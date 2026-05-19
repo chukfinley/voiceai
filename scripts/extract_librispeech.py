@@ -39,22 +39,13 @@ def main() -> None:
     audio_dir.mkdir(parents=True, exist_ok=True)
     manifest_path = args.out / "manifest.jsonl"
 
-    # Determine starting index
-    existing = sorted(audio_dir.glob("ls_*.flac"))
-    start_idx = 0
-    if args.resume and existing:
-        last = existing[-1].stem  # ls_NNNNNNN
-        try:
-            start_idx = int(last.split("_")[1]) + 1
-        except Exception:
-            start_idx = len(existing)
-    print(f"[resume from idx {start_idx}, {len(existing)} files already on disk]", flush=True)
-
-    mf = manifest_path.open("a", buffering=1)
+    # Rebuild manifest from scratch (fast, no decode)
+    manifest_path.unlink(missing_ok=True)
+    mf = manifest_path.open("w", buffering=1)
     total_s = 0.0
     written = 0
-    idx = start_idx
-    every = 100
+    idx = 0
+    every = 500
 
     for shard_i, pq_path in enumerate(pq_files):
         if total_s / 3600 >= args.max_hours:
@@ -65,36 +56,27 @@ def main() -> None:
         except Exception as e:
             print(f"  skip {pq_path}: {e}", flush=True)
             continue
-        for row in range(tbl.num_rows):
+        # Pull columns as plain Python once per shard
+        audio_col = tbl.column("audio").to_pylist()
+        text_col = tbl.column("text").to_pylist()
+        for audio_struct, text in zip(audio_col, text_col):
             if total_s / 3600 >= args.max_hours:
                 break
             out_path = audio_dir / f"ls_{idx:07d}.flac"
             idx += 1
-            if out_path.exists():
-                # Re-read duration from existing file
-                try:
-                    info = sf.info(out_path)
-                    total_s += info.frames / info.samplerate
-                    written += 1
-                except Exception:
-                    pass
-                continue
             try:
-                audio_struct = tbl.column("audio")[row].as_py()
-                text = str(tbl.column("text")[row].as_py())
-                raw = audio_struct.get("bytes")
-                if raw is None and audio_struct.get("path"):
+                raw = audio_struct.get("bytes") if audio_struct else None
+                if raw is None and audio_struct and audio_struct.get("path"):
                     raw = Path(audio_struct["path"]).read_bytes()
                 if not raw:
                     continue
-                audio, sr = sf.read(io.BytesIO(raw), dtype="float32")
-                if audio.ndim > 1:
-                    audio = audio.mean(axis=1)
-                sf.write(out_path, audio, sr, format="FLAC")
-                dur = len(audio) / sr
+                if not out_path.exists():
+                    out_path.write_bytes(raw)
+                info = sf.info(out_path)
+                dur = info.frames / info.samplerate
                 mf.write(
                     json.dumps(
-                        {"audio": str(out_path), "text": text, "duration": dur, "source": "librispeech"}
+                        {"audio": str(out_path), "text": str(text), "duration": dur, "source": "librispeech"}
                     )
                     + "\n"
                 )
@@ -103,7 +85,7 @@ def main() -> None:
                 if written % every == 0:
                     print(f"  {written} written, {total_s/3600:.2f}h", flush=True)
             except Exception as e:
-                print(f"  row {row} fail: {e}", flush=True)
+                print(f"  row {idx-1} fail: {e}", flush=True)
                 continue
     mf.close()
     print(f"[DONE] {written} files, {total_s/3600:.2f}h total → {manifest_path}", flush=True)
