@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.9.28"
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Install CPU torch + deps
+        run: |
+          uv sync --extra dev
+          VIRTUAL_ENV=.venv uv pip install --reinstall \
+            torch torchaudio \
+            --index-url https://download.pytorch.org/whl/cpu
+
+      - name: Lint
+        run: uv run ruff check src/ scripts/ tests/ || true
+
+      - name: Unit tests
+        run: PYTHONNOUSERSITE=1 .venv/bin/python -m pytest tests/ -q -m "not slow"
+
+      - name: Smoke test
+        run: PYTHONNOUSERSITE=1 .venv/bin/python scripts/smoke_test.py

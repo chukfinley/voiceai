@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+runs/
+data/
+refs/
+*.tar.gz
+.DS_Store
+.coverage
+.mypy_cache/
+node_modules/
