@@ -22,6 +22,7 @@ if TYPE_CHECKING:
 
 
 MIMI_HF_REPO = "kyutai/mimi"
+MIMI_WEIGHTS_FILE = "model.safetensors"
 MIMI_FRAME_HZ = 12.5
 MIMI_NUM_CODEBOOKS = 8
 MIMI_CARD = 2048  # vocab per codebook (real Mimi is 2048)
@@ -37,12 +38,20 @@ def load_mimi(device: str = "cuda", dtype: torch.dtype | None = None):
 
     Auto-picks float32 on CPU (bfloat16 on CPU is slow/buggy in older torch).
     """
+    from huggingface_hub import hf_hub_download
     from moshi.models.loaders import get_mimi
 
     if dtype is None:
         dtype = torch.float32 if device == "cpu" else torch.bfloat16
 
-    mimi = get_mimi(MIMI_HF_REPO, device=device)
+    # Download weights file from HF, then point get_mimi at the local path.
+    try:
+        ckpt_path = hf_hub_download(MIMI_HF_REPO, MIMI_WEIGHTS_FILE)
+    except Exception:
+        # fall back to .pt name if safetensors not available
+        ckpt_path = hf_hub_download(MIMI_HF_REPO, "tokenizer-e351c8d8-checkpoint125.safetensors")
+
+    mimi = get_mimi(ckpt_path, device=device)
     mimi = mimi.to(dtype=dtype)
     mimi.eval()
     for p in mimi.parameters():
