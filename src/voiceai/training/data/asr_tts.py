@@ -84,8 +84,10 @@ class ASRTTSDataset(IterableDataset):
                 audio = audio[start : start + int(self.max_audio_s * sr)]
             t = torch.from_numpy(audio).unsqueeze(0).unsqueeze(0)
             t = resample_to_mimi(t, sr)
+            mimi_param = next(self.mimi.parameters())
+            t = t.to(device=mimi_param.device, dtype=mimi_param.dtype)
             with torch.no_grad():
-                codes = self.mimi.encode(t.to(next(self.mimi.parameters()).device))
+                codes = self.mimi.encode(t)
             codes = codes[0].cpu().numpy()
             text_ids = np.array(
                 self.tokenizer.encode(meta["text"], add_special_tokens=False),
