@@ -35,13 +35,22 @@ def main() -> None:
 
 
 def _load_librispeech(out_dir: Path, max_hours: float) -> list[dict]:
-    """Stream LibriSpeech without HF's audio decoder (avoids torchcodec deps)."""
+    """Fast LibriSpeech loader: parallel parquet download via snapshot_download,
+    then bulk extract audio bytes with soundfile (no torchcodec).
+    """
     from datasets import Audio, load_dataset
     import soundfile as sf
     import io
 
     out_dir.mkdir(parents=True, exist_ok=True)
-    ds = load_dataset("openslr/librispeech_asr", "clean", split="train.100", streaming=True)
+    # Non-streaming = downloads parquet shards in parallel (much faster than streaming).
+    # HF_HUB_ENABLE_HF_TRANSFER=1 must be set in env for max throughput.
+    ds = load_dataset(
+        "openslr/librispeech_asr",
+        "clean",
+        split="train.100",
+        num_proc=8,
+    )
     ds = ds.cast_column("audio", Audio(decode=False))
     total_s = 0
     entries = []
@@ -64,6 +73,7 @@ def _load_librispeech(out_dir: Path, max_hours: float) -> list[dict]:
 
 
 def _load_commonvoice(out_dir: Path, split: str, max_hours: float) -> list[dict]:
+    """Fast CommonVoice loader: non-streaming download, bulk decode."""
     from datasets import Audio, load_dataset
     import soundfile as sf
     import io
@@ -73,8 +83,8 @@ def _load_commonvoice(out_dir: Path, split: str, max_hours: float) -> list[dict]
         "mozilla-foundation/common_voice_17_0",
         "en",
         split=split,
-        streaming=True,
         trust_remote_code=True,
+        num_proc=8,
     )
     ds = ds.cast_column("audio", Audio(decode=False))
     total_s = 0
