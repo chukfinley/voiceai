@@ -60,13 +60,16 @@ def mimi_encode(mimi, audio: torch.Tensor) -> torch.Tensor:
 
     Args:
         mimi: loaded Mimi model
-        audio: shape [batch, 1, samples] @ 24kHz, float
+        audio: shape [batch, 1, samples] @ 24kHz, any float dtype
 
     Returns:
         codes: shape [batch, num_codebooks=8, frames]
     """
     if audio.dim() == 2:
         audio = audio.unsqueeze(1)
+    target_dtype = next(mimi.parameters()).dtype
+    target_device = next(mimi.parameters()).device
+    audio = audio.to(device=target_device, dtype=target_dtype)
     return mimi.encode(audio)
 
 
@@ -80,6 +83,8 @@ def mimi_decode(mimi, codes: torch.Tensor) -> torch.Tensor:
     Returns:
         audio: shape [batch, 1, samples] @ 24kHz
     """
+    target_device = next(mimi.parameters()).device
+    codes = codes.to(target_device)
     return mimi.decode(codes)
 
 
