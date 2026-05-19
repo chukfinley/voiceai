@@ -107,7 +107,7 @@ def main() -> None:
         ds,
         batch_size=args.batch_size,
         collate_fn=lambda b: asr_tts_collate(b, pad_token_id=pad_id),
-        num_workers=2,
+        num_workers=0,  # Mimi encoding uses CUDA; workers can't fork CUDA context
         pin_memory=True,
     )
 
