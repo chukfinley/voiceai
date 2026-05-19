@@ -21,8 +21,8 @@ if TYPE_CHECKING:
     from moshi.models.compression import MimiModel
 
 
-MIMI_HF_REPO = "kyutai/mimi"
-MIMI_WEIGHTS_FILE = "model.safetensors"
+MIMI_HF_REPO = "kyutai/moshiko-pytorch-bf16"
+MIMI_WEIGHTS_FILE = "tokenizer-e351c8d8-checkpoint125.safetensors"
 MIMI_FRAME_HZ = 12.5
 MIMI_NUM_CODEBOOKS = 8
 MIMI_CARD = 2048  # vocab per codebook (real Mimi is 2048)
@@ -44,12 +44,7 @@ def load_mimi(device: str = "cuda", dtype: torch.dtype | None = None):
     if dtype is None:
         dtype = torch.float32 if device == "cpu" else torch.bfloat16
 
-    # Download weights file from HF, then point get_mimi at the local path.
-    try:
-        ckpt_path = hf_hub_download(MIMI_HF_REPO, MIMI_WEIGHTS_FILE)
-    except Exception:
-        # fall back to .pt name if safetensors not available
-        ckpt_path = hf_hub_download(MIMI_HF_REPO, "tokenizer-e351c8d8-checkpoint125.safetensors")
+    ckpt_path = hf_hub_download(MIMI_HF_REPO, MIMI_WEIGHTS_FILE)
 
     mimi = get_mimi(ckpt_path, device=device)
     mimi = mimi.to(dtype=dtype)
