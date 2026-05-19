@@ -74,21 +74,31 @@ class ASRTTSDataset(IterableDataset):
         for idx in order:
             try:
                 meta = json.loads(self.lines[idx])
-                audio, sr = sf.read(meta["audio"], dtype="float32")
             except Exception:
                 continue
-            if audio.ndim > 1:
-                audio = audio.mean(axis=1)
-            if len(audio) / sr > self.max_audio_s:
-                start = rng.randint(0, len(audio) - int(self.max_audio_s * sr))
-                audio = audio[start : start + int(self.max_audio_s * sr)]
-            t = torch.from_numpy(audio).unsqueeze(0).unsqueeze(0)
-            t = resample_to_mimi(t, sr)
-            mimi_param = next(self.mimi.parameters())
-            t = t.to(device=mimi_param.device, dtype=mimi_param.dtype)
-            with torch.no_grad():
-                codes = self.mimi.encode(t)
-            codes = codes[0].cpu().numpy()
+            codes_path = meta.get("codes")
+            if codes_path:
+                try:
+                    codes = np.load(codes_path).astype(np.int64)
+                except Exception:
+                    continue
+            else:
+                try:
+                    audio, sr = sf.read(meta["audio"], dtype="float32")
+                except Exception:
+                    continue
+                if audio.ndim > 1:
+                    audio = audio.mean(axis=1)
+                if len(audio) / sr > self.max_audio_s:
+                    start = rng.randint(0, len(audio) - int(self.max_audio_s * sr))
+                    audio = audio[start : start + int(self.max_audio_s * sr)]
+                t = torch.from_numpy(audio).unsqueeze(0).unsqueeze(0)
+                t = resample_to_mimi(t, sr)
+                mimi_param = next(self.mimi.parameters())
+                t = t.to(device=mimi_param.device, dtype=mimi_param.dtype)
+                with torch.no_grad():
+                    codes = self.mimi.encode(t)
+                codes = codes[0].cpu().numpy()
             text_ids = np.array(
                 self.tokenizer.encode(meta["text"], add_special_tokens=False),
                 dtype=np.int32,

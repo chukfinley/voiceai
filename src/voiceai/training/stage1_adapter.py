@@ -56,6 +56,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--wandb-project", default="voiceai")
     p.add_argument("--wandb-disable", action="store_true")
     p.add_argument("--smoke", action="store_true", help="tiny run for testing")
+    p.add_argument("--num-workers", type=int, default=0, help="DataLoader workers (only safe when manifest has pre-encoded `codes`)")
     return p
 
 
@@ -90,7 +91,7 @@ def main() -> None:
         load_in_4bit=args.load_in_4bit,
     )
     model = VoiceAILM(cfg).to(device)
-    mimi = load_mimi(device=device, dtype=dtype)
+    mimi = None if args.num_workers > 0 else load_mimi(device=device, dtype=dtype)
 
     print(f"trainable params: {model.trainable_param_count() / 1e6:.1f}M / {model.total_param_count() / 1e6:.1f}M total")
 
@@ -103,12 +104,15 @@ def main() -> None:
         seed=args.seed,
     )
     pad_id = model.tokenizer.pad_token_id or 0
+    # If manifest has `codes` field (pre-encoded), can use multiple workers safely.
+    use_workers = bool(args.num_workers)
     loader = DataLoader(
         ds,
         batch_size=args.batch_size,
         collate_fn=lambda b: asr_tts_collate(b, pad_token_id=pad_id),
-        num_workers=0,  # Mimi encoding uses CUDA; workers can't fork CUDA context
+        num_workers=args.num_workers if use_workers else 0,
         pin_memory=True,
+        persistent_workers=use_workers,
     )
 
     trainable = [p for p in model.parameters() if p.requires_grad]
