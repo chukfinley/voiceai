@@ -80,6 +80,9 @@ class MimiOutputHeads(nn.Module):
 
     def forward(self, hidden: torch.Tensor) -> torch.Tensor:
         """hidden: [B, T, d_model] -> logits: [B, K, T, V]"""
+        head_dtype = self.heads[0].weight.dtype
+        if hidden.dtype != head_dtype:
+            hidden = hidden.to(head_dtype)
         return torch.stack([h(hidden) for h in self.heads], dim=1)
 
     def loss(
@@ -96,7 +99,7 @@ class MimiOutputHeads(nn.Module):
         logits = self.forward(hidden)  # [B, K, T, V]
         B, K, T, V = logits.shape
         return nn.functional.cross_entropy(
-            logits.reshape(-1, V),
+            logits.reshape(-1, V).float(),
             target_codes.reshape(-1),
             ignore_index=ignore_index,
             reduction=reduction,

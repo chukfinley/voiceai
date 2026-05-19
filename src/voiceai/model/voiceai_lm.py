@@ -190,7 +190,7 @@ class VoiceAILM(nn.Module):
         total_loss = None
         if labels_text is not None and self.cfg.train_text:
             text_loss = nn.functional.cross_entropy(
-                text_logits.reshape(-1, text_logits.size(-1)),
+                text_logits.reshape(-1, text_logits.size(-1)).float(),
                 labels_text.reshape(-1),
                 ignore_index=-100,
             )
