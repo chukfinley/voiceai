@@ -35,28 +35,38 @@ def main() -> None:
 
 
 def _load_librispeech(out_dir: Path, max_hours: float) -> list[dict]:
-    from datasets import load_dataset
+    """Stream LibriSpeech without HF's audio decoder (avoids torchcodec deps)."""
+    from datasets import Audio, load_dataset
     import soundfile as sf
+    import io
 
     out_dir.mkdir(parents=True, exist_ok=True)
     ds = load_dataset("openslr/librispeech_asr", "clean", split="train.100", streaming=True)
+    ds = ds.cast_column("audio", Audio(decode=False))
     total_s = 0
     entries = []
     for i, ex in enumerate(ds):
         if total_s / 3600 >= max_hours:
             break
-        wav_path = out_dir / f"ls_{i:06d}.wav"
-        audio = ex["audio"]["array"]
-        sr = ex["audio"]["sampling_rate"]
-        sf.write(wav_path, audio, sr)
+        wav_path = out_dir / f"ls_{i:06d}.flac"
+        ab = ex["audio"]
+        raw = ab.get("bytes")
+        if raw is None and ab.get("path"):
+            with open(ab["path"], "rb") as f:
+                raw = f.read()
+        if raw is None:
+            continue
+        audio, sr = sf.read(io.BytesIO(raw), dtype="float32")
+        sf.write(wav_path, audio, sr, format="FLAC")
         entries.append({"audio": str(wav_path), "text": ex["text"], "duration": len(audio) / sr})
         total_s += len(audio) / sr
     return entries
 
 
 def _load_commonvoice(out_dir: Path, split: str, max_hours: float) -> list[dict]:
-    from datasets import load_dataset
+    from datasets import Audio, load_dataset
     import soundfile as sf
+    import io
 
     out_dir.mkdir(parents=True, exist_ok=True)
     ds = load_dataset(
@@ -66,14 +76,24 @@ def _load_commonvoice(out_dir: Path, split: str, max_hours: float) -> list[dict]
         streaming=True,
         trust_remote_code=True,
     )
+    ds = ds.cast_column("audio", Audio(decode=False))
     total_s = 0
     entries = []
     for i, ex in enumerate(ds):
         if total_s / 3600 >= max_hours:
             break
+        ab = ex["audio"]
+        raw = ab.get("bytes")
+        if raw is None and ab.get("path"):
+            with open(ab["path"], "rb") as f:
+                raw = f.read()
+        if raw is None:
+            continue
+        try:
+            audio, sr = sf.read(io.BytesIO(raw), dtype="float32")
+        except Exception:
+            continue
         wav_path = out_dir / f"cv_{i:06d}.wav"
-        audio = ex["audio"]["array"]
-        sr = ex["audio"]["sampling_rate"]
         sf.write(wav_path, audio, sr)
         entries.append({"audio": str(wav_path), "text": ex["sentence"], "duration": len(audio) / sr})
         total_s += len(audio) / sr
