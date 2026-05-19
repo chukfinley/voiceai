@@ -151,22 +151,24 @@ class VoiceAILM(nn.Module):
             raise ValueError("provide at least text_ids or user_audio_codes")
 
         text_embed_layer = self.backbone.get_input_embeddings()
+        bb_dtype = text_embed_layer.weight.dtype
 
         if text_ids is not None:
             embeds = text_embed_layer(text_ids)
         else:
             B = user_audio_codes.shape[0]
             T = user_audio_codes.shape[2]
-            embeds = torch.zeros(B, T, self.backbone.config.hidden_size, device=device, dtype=text_embed_layer.weight.dtype)
+            embeds = torch.zeros(B, T, self.backbone.config.hidden_size, device=device, dtype=bb_dtype)
 
         if user_audio_codes is not None:
-            audio_embeds = self.audio_in(user_audio_codes)
+            audio_embeds = self.audio_in(user_audio_codes).to(dtype=bb_dtype)
             if text_audio_mask is None:
                 embeds = embeds + audio_embeds
             else:
                 mask = text_audio_mask.unsqueeze(-1).to(embeds.dtype)
                 embeds = embeds * (1 - mask) + audio_embeds * mask
 
+        embeds = embeds.to(dtype=bb_dtype)
         outputs = self.backbone(
             inputs_embeds=embeds,
             attention_mask=attention_mask,
