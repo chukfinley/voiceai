@@ -143,24 +143,42 @@ def main() -> None:
             losses: list[torch.Tensor] = []
 
             if asr_idx:
-                ac = audio_codes[asr_idx]
-                tt = text_ids[asr_idx]
-                out = model(
-                    text_ids=None,
-                    user_audio_codes=ac,
-                    attention_mask=torch.ones(ac.shape[0], ac.shape[2], device=device, dtype=torch.long),
-                )
-                hidden = out["hidden"]
-                B, Tframe, D = hidden.shape
+                ac = audio_codes[asr_idx]  # [B, K, T_audio]
+                tt = text_ids[asr_idx]      # [B, T_text]
+                B = ac.shape[0]
+                T_audio = ac.shape[2]
                 T_text = tt.shape[1]
-                if T_text <= Tframe:
-                    target = torch.full((B, Tframe), -100, dtype=torch.long, device=device)
-                    target[:, :T_text] = tt
+
+                # Prefix-LM ASR: input = [audio_embeds, text_embeds[:-1]]
+                # logits at audio-end predict text[0]; at text[i-1] predict text[i].
+                text_embed_layer = model.backbone.get_input_embeddings()
+                bb_dtype = text_embed_layer.weight.dtype
+                audio_e = model.audio_in(ac).to(dtype=bb_dtype)  # [B, T_audio, D]
+                if T_text > 1:
+                    text_in = text_embed_layer(tt[:, :-1])  # [B, T_text-1, D]
+                    embeds = torch.cat([audio_e, text_in], dim=1)
+                    text_mask = (tt[:, :-1] != pad_id).long()
                 else:
-                    target = tt[:, :Tframe]
-                text_logits = out["text_logits"]
+                    embeds = audio_e
+                    text_mask = torch.zeros(B, 0, device=device, dtype=torch.long)
+                audio_mask = torch.ones(B, T_audio, device=device, dtype=torch.long)
+                attn = torch.cat([audio_mask, text_mask], dim=1)
+
+                bb_out = model.backbone(
+                    inputs_embeds=embeds,
+                    attention_mask=attn,
+                    output_hidden_states=True,
+                    return_dict=True,
+                )
+                hidden_all = bb_out.hidden_states[-1]
+                # Slice positions [T_audio-1 .. T_audio-1+T_text) to predict tt[0..T_text)
+                text_hidden = hidden_all[:, T_audio - 1:T_audio - 1 + T_text, :]
+                text_logits = model.backbone.lm_head(text_hidden)  # [B, T_text, V]
+
+                target = tt.clone()
+                target[tt == pad_id] = -100
                 asr_loss = F.cross_entropy(
-                    text_logits.reshape(-1, text_logits.size(-1)),
+                    text_logits.reshape(-1, text_logits.size(-1)).float(),
                     target.reshape(-1),
                     ignore_index=-100,
                 )
@@ -206,7 +224,9 @@ def main() -> None:
 
             if step > 0 and step % args.ckpt_every == 0:
                 ckpt = args.output / f"step_{step}"
-                model.save_pretrained(ckpt)
+                # Skip backbone for intermediate ckpts — it's frozen, identical
+                # across saves, and otherwise blows the pod disk quota.
+                model.save_pretrained(ckpt, save_backbone=False)
 
             step += 1
             pbar.update(1)

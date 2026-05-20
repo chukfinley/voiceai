@@ -42,6 +42,11 @@ def evaluate(runner, cfg: ASRConfig) -> EvalResult:
     hyps = []
     import soundfile as sf
 
+    text_embed_layer = model.backbone.get_input_embeddings()
+    bb_dtype = text_embed_layer.weight.dtype
+    eos_id = model.tokenizer.eos_token_id
+    pad_id = model.tokenizer.pad_token_id or 0
+
     for ex in lines:
         try:
             audio, sr = sf.read(ex["audio"], dtype="float32")
@@ -53,12 +58,32 @@ def evaluate(runner, cfg: ASRConfig) -> EvalResult:
         t = resample_to_mimi(t, sr).to(torch.bfloat16)
         with torch.no_grad():
             codes = mimi_encode(mimi, t)
-        T = codes.shape[2]
-        attn = torch.ones(1, T, device=runner.device, dtype=torch.long)
+
         with torch.no_grad():
-            out = model(text_ids=None, user_audio_codes=codes, attention_mask=attn)
-        text_pred_ids = out["text_logits"].argmax(dim=-1).squeeze(0).tolist()
-        pred = model.tokenizer.decode(text_pred_ids, skip_special_tokens=True)
+            # Audio prefix embeddings
+            audio_e = model.audio_in(codes).to(dtype=bb_dtype)
+            embeds = audio_e
+            generated: list[int] = []
+            for _ in range(cfg.max_text_len):
+                T = embeds.shape[1]
+                attn = torch.ones(1, T, device=runner.device, dtype=torch.long)
+                bb_out = model.backbone(
+                    inputs_embeds=embeds,
+                    attention_mask=attn,
+                    output_hidden_states=True,
+                    return_dict=True,
+                )
+                last_hidden = bb_out.hidden_states[-1][:, -1:, :]
+                next_logits = model.backbone.lm_head(last_hidden)
+                next_id = int(next_logits.argmax(dim=-1).item())
+                if eos_id is not None and next_id == eos_id:
+                    break
+                if next_id == pad_id:
+                    break
+                generated.append(next_id)
+                next_emb = text_embed_layer(torch.tensor([[next_id]], device=runner.device))
+                embeds = torch.cat([embeds, next_emb.to(dtype=bb_dtype)], dim=1)
+        pred = model.tokenizer.decode(generated, skip_special_tokens=True)
         refs.append(ex["text"].strip().lower())
         hyps.append(pred.strip().lower()[: cfg.max_text_len])
 

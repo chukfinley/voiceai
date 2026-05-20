@@ -217,7 +217,7 @@ class VoiceAILM(nn.Module):
     # ------------------------------------------------------------------
     # Save / load
     # ------------------------------------------------------------------
-    def save_pretrained(self, path: str | Path) -> None:
+    def save_pretrained(self, path: str | Path, save_backbone: bool = True) -> None:
         path = Path(path)
         path.mkdir(parents=True, exist_ok=True)
         torch.save(
@@ -231,15 +231,20 @@ class VoiceAILM(nn.Module):
             },
             path / "adapters.pt",
         )
-        self.backbone.save_pretrained(path / "backbone")
-        self.tokenizer.save_pretrained(path / "backbone")
+        if save_backbone:
+            self.backbone.save_pretrained(path / "backbone")
+            self.tokenizer.save_pretrained(path / "backbone")
 
     @classmethod
     def from_pretrained(cls, path: str | Path) -> "VoiceAILM":
         path = Path(path)
         adapters = torch.load(path / "adapters.pt", map_location="cpu")
         cfg = VoiceAIConfig(**adapters["cfg"])
-        cfg.backbone = str(path / "backbone")
+        backbone_dir = path / "backbone"
+        if backbone_dir.exists():
+            cfg.backbone = str(backbone_dir)
+        # else: keep cfg.backbone as the original HF id (intermediate ckpt
+        # without full backbone snapshot)
         model = cls(cfg)
         model.audio_in.load_state_dict(adapters["audio_in"])
         model.asst_audio_out.load_state_dict(adapters["asst_audio_out"])
