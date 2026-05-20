@@ -25,6 +25,7 @@ dependencies = [
     "huggingface-hub>=0.26",
     "safetensors>=0.4",
     "tqdm>=4.66",
+    "jiwer>=3.0",
 ]
 
 [project.optional-dependencies]
