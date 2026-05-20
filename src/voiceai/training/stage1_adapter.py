@@ -195,23 +195,38 @@ def main() -> None:
                 losses.append(asr_loss)
 
             if tts_idx:
-                tt = text_ids[tts_idx]
-                ac = audio_codes[tts_idx]
-                attn = (tt != pad_id).long()
-                out = model(
-                    text_ids=tt,
-                    user_audio_codes=None,
-                    attention_mask=attn,
-                )
-                hidden = out["hidden"]
-                B, Ttext, D = hidden.shape
-                Tcode = ac.shape[2]
-                if Tcode <= Ttext:
-                    target_codes = torch.full((B, ac.shape[1], Ttext), -100, dtype=torch.long, device=device)
-                    target_codes[:, :, :Tcode] = ac
+                tt = text_ids[tts_idx]      # [B, T_text]
+                ac = audio_codes[tts_idx]   # [B, K, T_audio]
+                B = tt.shape[0]
+                T_text = tt.shape[1]
+                T_audio = ac.shape[2]
+                K = ac.shape[1]
+
+                # Prefix-LM TTS: input = [text_embeds, audio_in(audio[:-1])]
+                # logits at text-end predict audio[0]; at audio[i-1] predict audio[i].
+                text_embed_layer = model.backbone.get_input_embeddings()
+                bb_dtype = text_embed_layer.weight.dtype
+                text_e = text_embed_layer(tt)  # [B, T_text, D]
+                if T_audio > 1:
+                    audio_in = model.audio_in(ac[:, :, :-1]).to(dtype=bb_dtype)  # [B, T_audio-1, D]
+                    embeds = torch.cat([text_e, audio_in], dim=1)
+                    audio_mask = torch.ones(B, T_audio - 1, device=device, dtype=torch.long)
                 else:
-                    target_codes = ac[:, :, :Ttext]
-                tts_loss = model.asst_audio_out.loss(hidden, target_codes)
+                    embeds = text_e
+                    audio_mask = torch.zeros(B, 0, device=device, dtype=torch.long)
+                text_mask = (tt != pad_id).long()
+                attn = torch.cat([text_mask, audio_mask], dim=1)
+
+                bb_out = model.backbone(
+                    inputs_embeds=embeds,
+                    attention_mask=attn,
+                    output_hidden_states=True,
+                    return_dict=True,
+                )
+                hidden_all = bb_out.hidden_states[-1]
+                # Slice positions [T_text-1 .. T_text-1+T_audio) to predict ac[:,:,0..T_audio)
+                audio_hidden = hidden_all[:, T_text - 1:T_text - 1 + T_audio, :]
+                tts_loss = model.asst_audio_out.loss(audio_hidden, ac)
                 losses.append(tts_loss)
 
             if not losses:
