@@ -45,7 +45,9 @@ def evaluate(runner, cfg: ASRConfig) -> EvalResult:
     text_embed_layer = model.backbone.get_input_embeddings()
     bb_dtype = text_embed_layer.weight.dtype
     eos_id = model.tokenizer.eos_token_id
-    pad_id = model.tokenizer.pad_token_id or 0
+    if model.tokenizer.pad_token_id is None:
+        model.tokenizer.pad_token = model.tokenizer.eos_token
+    pad_id = model.tokenizer.pad_token_id
 
     for ex in lines:
         try:

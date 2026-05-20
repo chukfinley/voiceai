@@ -113,7 +113,9 @@ def main() -> None:
         max_audio_s=args.max_audio_s,
         seed=args.seed,
     )
-    pad_id = model.tokenizer.pad_token_id or 0
+    if model.tokenizer.pad_token_id is None:
+        model.tokenizer.pad_token = model.tokenizer.eos_token
+    pad_id = model.tokenizer.pad_token_id
     # If manifest has `codes` field (pre-encoded), can use multiple workers safely.
     use_workers = bool(args.num_workers)
     loader = DataLoader(
