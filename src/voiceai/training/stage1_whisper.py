@@ -38,6 +38,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--seed", type=int, default=0)
     p.add_argument("--wandb-project", default="voiceai")
     p.add_argument("--wandb-disable", action="store_true")
+    p.add_argument("--resume-from", type=Path, default=None, help="Path to a ckpt dir; loads bridge.pt to warm-start.")
     return p
 
 
@@ -110,6 +111,12 @@ def main() -> None:
     device = args.device if torch.cuda.is_available() else "cpu"
     cfg = WhisperLMConfig(whisper_id=args.whisper_id, llm_id=args.llm_id, dtype=args.dtype)
     model = WhisperLM(cfg).to(device)
+
+    if args.resume_from is not None and (args.resume_from / "bridge.pt").exists():
+        data = torch.load(args.resume_from / "bridge.pt", map_location=device)
+        model.bridge.load_state_dict(data["bridge"])
+        print(f"resumed bridge from {args.resume_from}")
+
     print(f"trainable params: {model.trainable_param_count() / 1e6:.2f}M")
 
     pad_id = model.tokenizer.pad_token_id
