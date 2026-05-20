@@ -57,6 +57,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--wandb-disable", action="store_true")
     p.add_argument("--smoke", action="store_true", help="tiny run for testing")
     p.add_argument("--num-workers", type=int, default=0, help="DataLoader workers (only safe when manifest has pre-encoded `codes`)")
+    p.add_argument("--resume-from", type=Path, default=None, help="Path to a previous ckpt dir; loads adapters.pt to warm-start.")
     return p
 
 
@@ -91,6 +92,15 @@ def main() -> None:
         load_in_4bit=args.load_in_4bit,
     )
     model = VoiceAILM(cfg).to(device)
+
+    if args.resume_from is not None and (args.resume_from / "adapters.pt").exists():
+        adapters = torch.load(args.resume_from / "adapters.pt", map_location=device)
+        model.audio_in.load_state_dict(adapters["audio_in"])
+        model.asst_audio_out.load_state_dict(adapters["asst_audio_out"])
+        if adapters.get("user_audio_out") and model.user_audio_out is not None:
+            model.user_audio_out.load_state_dict(adapters["user_audio_out"])
+        print(f"resumed adapters from {args.resume_from}")
+
     mimi = None if args.num_workers > 0 else load_mimi(device=device, dtype=dtype)
 
     print(f"trainable params: {model.trainable_param_count() / 1e6:.1f}M / {model.total_param_count() / 1e6:.1f}M total")
