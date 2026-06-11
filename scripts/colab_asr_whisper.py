@@ -70,10 +70,9 @@ def train(whisper_id: str, llm_id: str, steps: int) -> None:
         "--whisper-id", whisper_id,
         "--llm-id", llm_id,
         "--steps", str(steps),
-        # whisper pads every clip to 30s -> ~1500 audio prefix tokens; attention
-        # is O(seq^2), so keep the batch small to fit 24GB.
-        "--batch-size", "2",
-        "--grad-accum", "8",
+        # frame stacking (downsample_k=5) cuts the prefix 1500->300, so batch 8 fits.
+        "--batch-size", "8",
+        "--grad-accum", "2",
         "--lr", "1e-4",
         "--warmup", "200",
         "--log-every", "50",
@@ -151,9 +150,9 @@ if __name__ == "__main__":
     p = argparse.ArgumentParser()
     p.add_argument("--whisper-id", default="openai/whisper-small")
     p.add_argument("--llm-id", default="Qwen/Qwen3-0.6B")
-    p.add_argument("--clips", type=int, default=2000)
+    p.add_argument("--clips", type=int, default=3000)
     p.add_argument("--test-clips", type=int, default=16)
-    p.add_argument("--steps", type=int, default=3000)
+    p.add_argument("--steps", type=int, default=6000)
     p.add_argument("--push-to-hub", action="store_true")
     p.add_argument("--hub-repo", default=None)
     a = p.parse_args()

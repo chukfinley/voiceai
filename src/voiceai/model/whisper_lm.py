@@ -21,6 +21,10 @@ class WhisperLMConfig:
     whisper_id: str = "openai/whisper-small"
     llm_id: str = "Qwen/Qwen3-1.7B"
     dtype: str = "bfloat16"
+    # SLAM-ASR frame stacking: concatenate k consecutive whisper frames so the
+    # 1500-frame encoder output becomes 1500/k denser tokens. Without this the
+    # signal is too sparse (mostly 30s-padding) and the LLM ignores the audio.
+    downsample_k: int = 5
 
 
 class WhisperLM(nn.Module):
@@ -53,9 +57,10 @@ class WhisperLM(nn.Module):
 
         whisper_dim = self.audio_encoder.config.d_model
         llm_dim = self.backbone.config.hidden_size
+        self.downsample_k = cfg.downsample_k
 
         self.bridge = nn.Sequential(
-            nn.Linear(whisper_dim, llm_dim),
+            nn.Linear(whisper_dim * cfg.downsample_k, llm_dim),
             nn.GELU(),
             nn.Linear(llm_dim, llm_dim),
         ).to(dtype=dtype)
@@ -68,7 +73,12 @@ class WhisperLM(nn.Module):
         return self.audio_encoder(audio_features).last_hidden_state
 
     def audio_to_embeds(self, audio_features: torch.Tensor) -> torch.Tensor:
-        enc = self._whisper_encode(audio_features)
+        enc = self._whisper_encode(audio_features)  # [B, T, D]
+        k = self.downsample_k
+        if k > 1:
+            B, T, D = enc.shape
+            T2 = (T // k) * k
+            enc = enc[:, :T2, :].reshape(B, T2 // k, D * k)  # stack k frames
         return self.bridge(enc)
 
     def forward(
