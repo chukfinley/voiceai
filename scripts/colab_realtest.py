@@ -11,8 +11,10 @@ a *real* training run:
 Run once:
     python scripts/colab_realtest.py
 
-Smaller/faster backbone if T4 is tight:
-    python scripts/colab_realtest.py --backbone Qwen/Qwen3-0.6B --steps 150
+Default backbone is Qwen3-0.6B (recognised by current transformers). The repo's
+production target Qwen3.5-0.8B (model_type `qwen3_5`) needs transformers-from-
+source; pass it explicitly once that's installed:
+    python scripts/colab_realtest.py --backbone Qwen/Qwen3.5-0.8B
 """
 from __future__ import annotations
 
@@ -104,7 +106,7 @@ if __name__ == "__main__":
     import argparse
 
     p = argparse.ArgumentParser()
-    p.add_argument("--backbone", default="Qwen/Qwen3.5-0.8B")
+    p.add_argument("--backbone", default="Qwen/Qwen3-0.6B")
     p.add_argument("--steps", type=int, default=200)
     p.add_argument("--max-clips", type=int, default=64)
     a = p.parse_args()
