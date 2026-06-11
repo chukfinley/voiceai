@@ -102,6 +102,25 @@ def train(backbone: str, steps: int) -> None:
     print(f"\n[done] adapters -> {OUT}/   loss should have dropped over {steps} steps.")
 
 
+def push_to_hub(repo: str | None) -> None:
+    """Upload the trained checkpoint (runs/realtest/final) to the HF Hub.
+
+    Needs HF_TOKEN with *write* scope.
+    """
+    from huggingface_hub import HfApi
+
+    final = OUT / "final"
+    if not (final / "adapters.pt").exists():
+        sys.exit(f"[hub] no checkpoint at {final} — training did not finish")
+    api = HfApi(token=os.environ.get("HF_TOKEN"))
+    if not repo:
+        repo = f"{api.whoami()['name']}/voiceai-stage1-realtest"
+    api.create_repo(repo, exist_ok=True, private=True, repo_type="model")
+    print(f"[hub] uploading {final} -> {repo} …")
+    api.upload_folder(folder_path=str(final), repo_id=repo, repo_type="model")
+    print(f"[hub] saved: https://huggingface.co/{repo}")
+
+
 if __name__ == "__main__":
     import argparse
 
@@ -109,6 +128,10 @@ if __name__ == "__main__":
     p.add_argument("--backbone", default="Qwen/Qwen3-0.6B")
     p.add_argument("--steps", type=int, default=200)
     p.add_argument("--max-clips", type=int, default=64)
+    p.add_argument("--push-to-hub", action="store_true", help="upload trained ckpt to HF Hub (needs write token)")
+    p.add_argument("--hub-repo", default=None, help="target repo id, e.g. user/voiceai-stage1 (auto if omitted)")
     a = p.parse_args()
     build_data(a.max_clips)
     train(a.backbone, a.steps)
+    if a.push_to_hub:
+        push_to_hub(a.hub_repo)
