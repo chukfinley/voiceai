@@ -97,3 +97,32 @@ Next experiments to try (cheap, on 4090, measured against this baseline):
 A `poc`-scale Stage-1 (60k steps) ≈ ~5.5 GPU-h ≈ ~$3.8 on a 4090 (training only;
 + data download/encode time). That's the next real test of whether grounding
 emerges with scale.
+
+## ✅ SOLVED — Whisper-encoder ASR works (2026-06-11)
+
+Root cause (across 3 failed Mimi runs): **prefix-LM + teacher forcing + frozen
+LLM** lets the LLM predict each next token from the previous GROUND-TRUTH tokens
+(language prior), so the audio is only needed for the FIRST token → it gets
+ignored. Mimi acoustic codes made it worse (weak ASR representation). LoRA made
+it worse still (more LM-prior memorization).
+
+**Fix = SLAM-ASR:** frozen Whisper-small encoder (features ≈ transcript) → small
+trained bridge MLP → frozen Qwen. PLUS the critical detail: **frame stacking**
+(concatenate k=5 whisper frames → 1500 sparse frames become 300 dense tokens).
+Without stacking: loss plateaus at LM-prior (~4), identical degenerate output for
+every clip (audio ignored). WITH stacking: loss breaks through to <0.2.
+
+Run (whisper-small + Qwen3-0.6B, 2000 clips, 3000 steps, batch 8, ~9 min, ~$0.15):
+- loss 4 → 0.19
+- **TRAIN WER 1.9%**, **HELD-OUT WER 10.5%** (real ASR on unseen clips)
+- model: https://huggingface.co/chukfinley/voiceai-asr-whisper (bridge.pt only, ~frozen rest)
+
+Takeaway: only the ~4M bridge is trained; Whisper+Qwen frozen. Cheap, fast, works.
+Branch: lora-grounding-fix.
+
+### Polished run (3000 clips, 6000 steps, 24 held-out)
+- loss → 0.03 · TRAIN WER 1.4% · **HELD-OUT WER 11.3%**
+- ~same held-out as the 3000-step run (10.5%) → converged at ~11% on 3000 clips.
+  More STEPS overfit train; to lower held-out WER add more DATA (clips), not steps.
+- final model: HF chukfinley/voiceai-asr-whisper + local runs/asr_whisper_final/bridge.pt (9.5MB)
+- test it: `uv run --extra train python scripts/transcribe.py <file.wav>`
