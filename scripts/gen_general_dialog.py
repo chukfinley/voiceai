@@ -99,8 +99,8 @@ DIALOG_TEMPLATES = [
 ]
 
 
-def build_one(rng: random.Random, backend: str) -> dict:
-    template = rng.choice(DIALOG_TEMPLATES)
+def build_one(rng: random.Random, backend: str, dialog=None) -> dict:
+    template = dialog if dialog is not None else rng.choice(DIALOG_TEMPLATES)
     user_voice = rng.choice(KOKORO_VOICES_FEMALE)
     asst_voice = rng.choice(KOKORO_VOICES_MALE)
 
@@ -149,7 +149,26 @@ def main() -> None:
     p.add_argument("--encode-mimi", action="store_true")
     p.add_argument("--device", default="cuda")
     p.add_argument("--seed", type=int, default=0)
+    p.add_argument("--dialogs-file", type=Path, default=None,
+                   help="jsonl of Minimax-generated dialogs (list of {speaker,text}); "
+                        "overrides built-in templates")
     args = p.parse_args()
+
+    dialogs = None
+    if args.dialogs_file:
+        dialogs = []
+        for line in args.dialogs_file.read_text().splitlines():
+            if not line.strip():
+                continue
+            turns = json.loads(line)
+            dialogs.append([
+                ("asst" if str(t.get("speaker", "")).lower().startswith("a") else "user",
+                 str(t["text"]))
+                for t in turns if str(t.get("text", "")).strip()
+            ])
+        dialogs = [d for d in dialogs if len(d) >= 2]
+        print(f"loaded {len(dialogs)} dialogs from {args.dialogs_file}")
+        args.n = min(args.n, len(dialogs)) if args.n else len(dialogs)
 
     args.out.mkdir(parents=True, exist_ok=True)
     raw_dir = args.out / "raw"
@@ -170,7 +189,7 @@ def main() -> None:
 
     for i in tqdm(range(args.n)):
         try:
-            s = build_one(rng, args.backend)
+            s = build_one(rng, args.backend, dialog=dialogs[i] if dialogs else None)
         except Exception as e:
             print(f"skip {i}: {e}")
             continue
