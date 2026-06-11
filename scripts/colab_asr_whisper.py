@@ -70,8 +70,10 @@ def train(whisper_id: str, llm_id: str, steps: int) -> None:
         "--whisper-id", whisper_id,
         "--llm-id", llm_id,
         "--steps", str(steps),
-        "--batch-size", "8",
-        "--grad-accum", "2",
+        # whisper pads every clip to 30s -> ~1500 audio prefix tokens; attention
+        # is O(seq^2), so keep the batch small to fit 24GB.
+        "--batch-size", "2",
+        "--grad-accum", "8",
         "--lr", "1e-4",
         "--warmup", "200",
         "--log-every", "50",
@@ -81,7 +83,8 @@ def train(whisper_id: str, llm_id: str, steps: int) -> None:
         "--wandb-disable",
     ]
     print("[train] Whisper-bridge ASR:\n  " + " ".join(cmd))
-    if subprocess.run(cmd).returncode != 0:
+    env = {**os.environ, "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True"}
+    if subprocess.run(cmd, env=env).returncode != 0:
         sys.exit("[train] FAILED")
 
 
