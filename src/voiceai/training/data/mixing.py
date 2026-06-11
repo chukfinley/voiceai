@@ -35,15 +35,44 @@ def pad_or_trim(audio: np.ndarray, target_s: float, sr: int = 24000) -> np.ndarr
     return np.concatenate([audio, pad])
 
 
+def add_echo_bleed(
+    user_audio: np.ndarray,
+    asst_audio: np.ndarray,
+    sr: int,
+    gain: float = 0.1,
+    delay_ms: float = 80.0,
+) -> np.ndarray:
+    """Mix attenuated, delayed assistant audio into the user channel.
+
+    Simulates the residual echo AEC leaves behind (speaker → room → mic),
+    so the model learns "quiet, delayed copy of my own voice on the user
+    channel = echo, not the user talking" instead of barging in on itself.
+    """
+    delay = int(sr * delay_ms / 1000)
+    bleed = np.zeros_like(user_audio)
+    src = asst_audio[: max(0, len(user_audio) - delay)]
+    bleed[delay : delay + len(src)] = src * gain
+    return (user_audio + bleed).astype(np.float32)
+
+
 def encode_dual_stream(
     user_audio: np.ndarray,
     asst_audio: np.ndarray,
     mimi,
     sr: int = 24000,
     device: str = "cuda",
+    echo_bleed: float = 0.0,
+    echo_delay_ms: float = 80.0,
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Encode both streams with Mimi. Returns (user_codes, asst_codes) [K, T]."""
+    """Encode both streams with Mimi. Returns (user_codes, asst_codes) [K, T].
+
+    echo_bleed > 0 applies add_echo_bleed to the user channel before encoding
+    (recommended for a random subset of training samples, e.g. gain 0.05-0.2).
+    """
     from ...model.mimi_utils import mimi_encode, resample_to_mimi
+
+    if echo_bleed > 0:
+        user_audio = add_echo_bleed(user_audio, asst_audio, sr, gain=echo_bleed, delay_ms=echo_delay_ms)
 
     n = max(len(user_audio), len(asst_audio))
     user = np.pad(user_audio, (0, n - len(user_audio))) if len(user_audio) < n else user_audio

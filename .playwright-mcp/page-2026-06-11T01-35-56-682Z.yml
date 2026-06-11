@@ -1,0 +1,1079 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - navigation [ref=e3]:
+      - generic [ref=e4]:
+        - link "GetDeploying logo" [ref=e5] [cursor=pointer]:
+          - /url: /
+          - img "GetDeploying logo" [ref=e6]
+        - generic [ref=e8]:
+          - link "Cloud Index" [ref=e9] [cursor=pointer]:
+            - /url: /providers
+          - link "VPS" [ref=e10] [cursor=pointer]:
+            - /url: /reference/compute-prices
+          - link "Egress" [ref=e11] [cursor=pointer]:
+            - /url: /reference/data-egress
+          - link "GPUs" [ref=e12] [cursor=pointer]:
+            - /url: /gpus
+          - link "Compare" [ref=e13] [cursor=pointer]:
+            - /url: /compare
+    - main [ref=e16]:
+      - link "GPUhub logo GPUhub Dedicated Bare-Metal GPUs. No Virtualization. No Shared Resources. Built for Stable AI Workloads. Our sponsor Learn more →" [ref=e18] [cursor=pointer]:
+        - /url: https://gpuhub.com/?utm_source=getdeploying.com&utm_medium=paid&utm_content=banner-top
+        - generic [ref=e19]:
+          - img "GPUhub logo" [ref=e20]
+          - generic [ref=e21]: GPUhub
+          - generic [ref=e22]: Dedicated Bare-Metal GPUs. No Virtualization. No Shared Resources. Built for Stable AI Workloads.
+          - generic [ref=e23]: Our sponsor
+        - generic [ref=e25]: Learn more →
+      - generic [ref=e27]:
+        - generic [ref=e28]:
+          - img "Nvidia H100" [ref=e29]
+          - heading "Nvidia H100" [level=1] [ref=e30]
+          - paragraph [ref=e31]: The standard data center GPU for large-scale AI training and inference.
+          - link "Compare vs other GPUs →" [ref=e32] [cursor=pointer]:
+            - /url: /gpus
+        - generic [ref=e35]:
+          - generic [ref=e37]:
+            - list [ref=e39]:
+              - listitem [ref=e40]:
+                - img "on_demand legend icon" [ref=e41]
+                - text: On-Demand
+              - listitem [ref=e43]:
+                - img "reservation legend icon" [ref=e44]
+                - text: Reserved
+              - listitem [ref=e46]:
+                - img "spot legend icon" [ref=e47]
+                - text: Spot
+            - application [ref=e49]:
+              - generic [ref=e81]:
+                - generic [ref=e82]:
+                  - generic [ref=e84]: Jul 24
+                  - generic [ref=e86]: Oct 24
+                  - generic [ref=e88]: Jan 25
+                  - generic [ref=e90]: Apr 25
+                  - generic [ref=e92]: Jul 25
+                  - generic [ref=e94]: Sep 25
+                  - generic [ref=e96]: Dec 25
+                  - generic [ref=e98]: Jun 26
+                - generic [ref=e99]:
+                  - generic [ref=e101]: $0
+                  - generic [ref=e103]: $4
+                  - generic [ref=e105]: $8
+                  - generic [ref=e107]: $12
+                  - generic [ref=e109]: $16
+          - paragraph [ref=e110]: Average price per GPU per hour (USD) © GetDeploying.com
+      - generic [ref=e111]:
+        - generic [ref=e113]:
+          - heading "Key Specifications" [level=2] [ref=e114]
+          - generic [ref=e115]:
+            - generic [ref=e116]:
+              - term [ref=e117]: Architecture
+              - definition [ref=e118]: Hopper
+            - generic [ref=e119]:
+              - term [ref=e120]: Memory
+              - definition [ref=e121]: 80GB HBM3
+            - generic [ref=e122]:
+              - term [ref=e123]: Memory Bandwidth
+              - definition [ref=e124]: 3,350GB/s
+            - generic [ref=e125]:
+              - term [ref=e126]: Release date
+              - definition [ref=e127]: Q3 2022
+        - generic [ref=e128]:
+          - heading "Compare Cloud Provider Prices" [level=2] [ref=e130]
+          - paragraph [ref=e132]: We're tracking 45 cloud providers for the H100, and the pricing spread is significant. While the average sits at $3.34/hr, the lowest price is currently $0.52/hr per GPU (spot instance).
+          - generic [ref=e134]:
+            - generic [ref=e135]:
+              - generic [ref=e136]:
+                - generic [ref=e137]:
+                  - generic [ref=e138]: Search
+                  - textbox "Search" [ref=e139]:
+                    - /placeholder: Provider or instance...
+                - generic [ref=e140]:
+                  - generic [ref=e141]: Billing
+                  - combobox "Billing" [ref=e142]:
+                    - option "All" [selected]
+                    - option "On-Demand"
+                    - option "Spot"
+                    - option "Reserved"
+                    - option "Custom"
+                - generic [ref=e143]:
+                  - generic [ref=e144]: Max price/hr
+                  - spinbutton "Max price/hr" [ref=e145]
+              - generic [ref=e146]:
+                - generic [ref=e147]:
+                  - generic [ref=e148]: Min GPUs
+                  - spinbutton "Min GPUs" [ref=e149]
+                - generic [ref=e150]:
+                  - generic [ref=e151]: Min vCPUs
+                  - spinbutton "Min vCPUs" [ref=e152]
+                - generic [ref=e153]:
+                  - generic [ref=e154]: Min RAM (GB)
+                  - spinbutton "Min RAM (GB)" [ref=e155]
+              - button "How we sort results" [ref=e159] [cursor=pointer]:
+                - generic [ref=e160]: How we sort results
+                - img [ref=e161]
+            - table [ref=e163]:
+              - rowgroup [ref=e164]:
+                - row "Provider GPUs Total VRAM vCPUs RAM Billing $/GPU/h Total/h Availability" [ref=e165]:
+                  - columnheader "Provider" [ref=e166] [cursor=pointer]:
+                    - generic [ref=e167]: Provider
+                  - columnheader "GPUs" [ref=e168] [cursor=pointer]:
+                    - generic [ref=e169]: GPUs
+                  - columnheader "Total VRAM" [ref=e170] [cursor=pointer]:
+                    - generic [ref=e171]: Total VRAM
+                  - columnheader "vCPUs" [ref=e172] [cursor=pointer]:
+                    - generic [ref=e173]: vCPUs
+                  - columnheader "RAM" [ref=e174] [cursor=pointer]:
+                    - generic [ref=e175]: RAM
+                  - columnheader "Billing" [ref=e176] [cursor=pointer]:
+                    - generic [ref=e177]: Billing
+                  - columnheader "$/GPU/h" [ref=e178] [cursor=pointer]:
+                    - generic [ref=e179]: $/GPU/h
+                  - columnheader "Total/h" [ref=e180] [cursor=pointer]:
+                    - generic [ref=e181]: Total/h
+                  - columnheader "Availability" [ref=e182] [cursor=pointer]:
+                    - generic [ref=e183]: Availability
+                  - columnheader [ref=e184]
+              - rowgroup [ref=e185]:
+                - row "Lyceum logo Lyceum Our sponsor 1x H100 80GB 20 180GB On-Demand $2.79 $2.79 Unknown View" [ref=e186]:
+                  - cell "Lyceum logo Lyceum Our sponsor" [ref=e187]:
+                    - link "Lyceum logo Lyceum Our sponsor" [ref=e188] [cursor=pointer]:
+                      - /url: /lyceum
+                      - img "Lyceum logo" [ref=e189]
+                      - generic [ref=e190]:
+                        - generic [ref=e191]: Lyceum
+                        - generic [ref=e192]: Our sponsor
+                  - cell "1x H100" [ref=e193]:
+                    - generic [ref=e194]:
+                      - generic [ref=e195]: 1x H100
+                      - img [ref=e197] [cursor=pointer]
+                  - cell "80GB" [ref=e199]
+                  - cell "20" [ref=e200]
+                  - cell "180GB" [ref=e201]
+                  - cell "On-Demand" [ref=e202]:
+                    - generic [ref=e203]:
+                      - generic [ref=e204]: On-Demand
+                      - img [ref=e206] [cursor=pointer]
+                  - cell "$2.79" [ref=e208]
+                  - cell "$2.79" [ref=e209]
+                  - cell "Unknown" [ref=e210]
+                  - cell "View" [ref=e211]:
+                    - link "View" [ref=e212] [cursor=pointer]:
+                      - /url: https://lyceum.technology/resources/pricing/index.html?utm_source=getdeploying.com&utm_medium=paid&utm_content=nvidia-h100
+                      - generic [ref=e213]: View
+                      - img [ref=e214]
+                - row "Impossible Cloud logo Impossible Cloud 4x H100 320GB -- -- On-Demand $1.96 $7.84 Unknown View" [ref=e216]:
+                  - cell "Impossible Cloud logo Impossible Cloud" [ref=e217]:
+                    - link "Impossible Cloud logo Impossible Cloud" [ref=e218] [cursor=pointer]:
+                      - /url: /impossible-cloud
+                      - img "Impossible Cloud logo" [ref=e219]
+                      - generic [ref=e221]: Impossible Cloud
+                  - cell "4x H100" [ref=e222]:
+                    - generic [ref=e223]:
+                      - generic [ref=e224]: 4x H100
+                      - img [ref=e226] [cursor=pointer]
+                  - cell "320GB" [ref=e228]
+                  - cell "--" [ref=e229]
+                  - cell "--" [ref=e230]
+                  - cell "On-Demand" [ref=e231]:
+                    - generic [ref=e232]:
+                      - generic [ref=e233]: On-Demand
+                      - img [ref=e235] [cursor=pointer]
+                  - cell "$1.96" [ref=e237]
+                  - cell "$7.84" [ref=e238]
+                  - cell "Unknown" [ref=e239]
+                  - cell "View" [ref=e240]:
+                    - link "View" [ref=e241] [cursor=pointer]:
+                      - /url: https://www.impossiblecloud.com/baremetal?utm_source=getdeploying.com&utm_content=nvidia-h100
+                      - generic [ref=e242]: View
+                      - img [ref=e243]
+                - row "Sesterce logo Sesterce 1x H100 80GB 28 180GB On-Demand $2.09 $2.09 Available View" [ref=e245]:
+                  - cell "Sesterce logo Sesterce" [ref=e246]:
+                    - link "Sesterce logo Sesterce" [ref=e247] [cursor=pointer]:
+                      - /url: /sesterce
+                      - img "Sesterce logo" [ref=e248]
+                      - generic [ref=e250]: Sesterce
+                  - cell "1x H100" [ref=e251]:
+                    - generic [ref=e252]:
+                      - generic [ref=e253]: 1x H100
+                      - img [ref=e255] [cursor=pointer]
+                  - cell "80GB" [ref=e257]
+                  - cell "28" [ref=e258]
+                  - cell "180GB" [ref=e259]
+                  - cell "On-Demand" [ref=e260]:
+                    - generic [ref=e261]:
+                      - generic [ref=e262]: On-Demand
+                      - img [ref=e264] [cursor=pointer]
+                  - cell "$2.09" [ref=e266]
+                  - cell "$2.09" [ref=e267]
+                  - cell "Available" [ref=e268]
+                  - cell "View" [ref=e269]:
+                    - link "View" [ref=e270] [cursor=pointer]:
+                      - /url: https://cloud.sesterce.com/compute?utm_source=getdeploying.com&utm_content=nvidia-h100
+                      - generic [ref=e271]: View
+                      - img [ref=e272]
+                - row "UpCloud logo UpCloud 1x H100 80GB 12 240GB On-Demand $2.07 $2.07 Unknown View" [ref=e274]:
+                  - cell "UpCloud logo UpCloud" [ref=e275]:
+                    - link "UpCloud logo UpCloud" [ref=e276] [cursor=pointer]:
+                      - /url: /upcloud
+                      - img "UpCloud logo" [ref=e277]
+                      - generic [ref=e279]: UpCloud
+                  - cell "1x H100" [ref=e280]:
+                    - generic [ref=e281]:
+                      - generic [ref=e282]: 1x H100
+                      - img [ref=e284] [cursor=pointer]
+                  - cell "80GB" [ref=e286]
+                  - cell "12" [ref=e287]
+                  - cell "240GB" [ref=e288]
+                  - cell "On-Demand" [ref=e289]:
+                    - generic [ref=e290]:
+                      - generic [ref=e291]: On-Demand
+                      - img [ref=e293] [cursor=pointer]
+                  - cell "$2.07" [ref=e295]
+                  - cell "$2.07" [ref=e296]
+                  - cell "Unknown" [ref=e297]
+                  - cell "View" [ref=e298]:
+                    - link "View" [ref=e299] [cursor=pointer]:
+                      - /url: https://upcloud.com/pricing/?utm_source=getdeploying.com&utm_content=nvidia-h100#gpu-servers
+                      - generic [ref=e300]: View
+                      - img [ref=e301]
+                - row "Civo logo Civo 1x H100 PCIe 80GB 32 192GB On-Demand $2.49 $2.49 Unknown View" [ref=e303]:
+                  - cell "Civo logo Civo" [ref=e304]:
+                    - link "Civo logo Civo" [ref=e305] [cursor=pointer]:
+                      - /url: /civo
+                      - img "Civo logo" [ref=e306]
+                      - generic [ref=e308]: Civo
+                  - cell "1x H100 PCIe" [ref=e309]:
+                    - generic [ref=e310]:
+                      - generic [ref=e311]: 1x H100 PCIe
+                      - img [ref=e313] [cursor=pointer]
+                  - cell "80GB" [ref=e315]
+                  - cell "32" [ref=e316]
+                  - cell "192GB" [ref=e317]
+                  - cell "On-Demand" [ref=e318]:
+                    - generic [ref=e319]:
+                      - generic [ref=e320]: On-Demand
+                      - img [ref=e322] [cursor=pointer]
+                  - cell "$2.49" [ref=e324]
+                  - cell "$2.49" [ref=e325]
+                  - cell "Unknown" [ref=e326]
+                  - cell "View" [ref=e327]:
+                    - link "View" [ref=e328] [cursor=pointer]:
+                      - /url: https://www.civo.com/pricing?utm_source=getdeploying.com&utm_content=nvidia-h100
+                      - generic [ref=e329]: View
+                      - img [ref=e330]
+                - row "Koyeb logo Koyeb 1x H100 80GB 15 180GB On-Demand $2.50 $2.50 Unknown View" [ref=e332]:
+                  - cell "Koyeb logo Koyeb" [ref=e333]:
+                    - link "Koyeb logo Koyeb" [ref=e334] [cursor=pointer]:
+                      - /url: /koyeb
+                      - img "Koyeb logo" [ref=e335]
+                      - generic [ref=e337]: Koyeb
+                  - cell "1x H100" [ref=e338]:
+                    - generic [ref=e339]:
+                      - generic [ref=e340]: 1x H100
+                      - img [ref=e342] [cursor=pointer]
+                  - cell "80GB" [ref=e344]
+                  - cell "15" [ref=e345]
+                  - cell "180GB" [ref=e346]
+                  - cell "On-Demand" [ref=e347]:
+                    - generic [ref=e348]:
+                      - generic [ref=e349]: On-Demand
+                      - img [ref=e351] [cursor=pointer]
+                  - cell "$2.50" [ref=e353]
+                  - cell "$2.50" [ref=e354]
+                  - cell "Unknown" [ref=e355]
+                  - cell "View" [ref=e356]:
+                    - link "View" [ref=e357] [cursor=pointer]:
+                      - /url: https://koyeb.com/pricing?utm_source=getdeploying.com&utm_content=nvidia-h100
+                      - generic [ref=e358]: View
+                      - img [ref=e359]
+                - row "OVHcloud logo OVH 1x H100 80GB 30 380GB On-Demand $2.99 $2.99 Unknown View" [ref=e361]:
+                  - cell "OVHcloud logo OVH" [ref=e362]:
+                    - link "OVHcloud logo OVH" [ref=e363] [cursor=pointer]:
+                      - /url: /ovh
+                      - img "OVHcloud logo" [ref=e364]
+                      - generic [ref=e366]: OVH
+                  - cell "1x H100" [ref=e367]:
+                    - generic [ref=e368]:
+                      - generic [ref=e369]: 1x H100
+                      - img [ref=e371] [cursor=pointer]
+                  - cell "80GB" [ref=e373]
+                  - cell "30" [ref=e374]
+                  - cell "380GB" [ref=e375]
+                  - cell "On-Demand" [ref=e376]:
+                    - generic [ref=e377]:
+                      - generic [ref=e378]: On-Demand
+                      - img [ref=e380] [cursor=pointer]
+                  - cell "$2.99" [ref=e382]
+                  - cell "$2.99" [ref=e383]
+                  - cell "Unknown" [ref=e384]
+                  - cell "View" [ref=e385]:
+                    - link "View" [ref=e386] [cursor=pointer]:
+                      - /url: https://www.ovhcloud.com/en/public-cloud/prices/?utm_source=getdeploying.com&utm_content=nvidia-h100
+                      - generic [ref=e387]: View
+                      - img [ref=e388]
+                - row "Novita logo Novita 1x H100 SXM 80GB -- -- On-Demand $2.59 $2.59 Unknown View" [ref=e390]:
+                  - cell "Novita logo Novita" [ref=e391]:
+                    - link "Novita logo Novita" [ref=e392] [cursor=pointer]:
+                      - /url: /novita-ai
+                      - img "Novita logo" [ref=e393]
+                      - generic [ref=e395]: Novita
+                  - cell "1x H100 SXM" [ref=e396]:
+                    - generic [ref=e397]:
+                      - generic [ref=e398]: 1x H100 SXM
+                      - img [ref=e400] [cursor=pointer]
+                  - cell "80GB" [ref=e402]
+                  - cell "--" [ref=e403]
+                  - cell "--" [ref=e404]
+                  - cell "On-Demand" [ref=e405]:
+                    - generic [ref=e406]:
+                      - generic [ref=e407]: On-Demand
+                      - img [ref=e409] [cursor=pointer]
+                  - cell "$2.59" [ref=e411]
+                  - cell "$2.59" [ref=e412]
+                  - cell "Unknown" [ref=e413]
+                  - cell "View" [ref=e414]:
+                    - link "View" [ref=e415] [cursor=pointer]:
+                      - /url: https://novita.ai/pricing?utm_source=getdeploying.com&utm_content=nvidia-h100
+                      - generic [ref=e416]: View
+                      - img [ref=e417]
+                - row "Lambda Labs logo Lambda Labs 1x H100 PCIe 80GB 26 225GB On-Demand $3.29 $3.29 Unknown View" [ref=e419]:
+                  - cell "Lambda Labs logo Lambda Labs" [ref=e420]:
+                    - link "Lambda Labs logo Lambda Labs" [ref=e421] [cursor=pointer]:
+                      - /url: /lambda-labs
+                      - img "Lambda Labs logo" [ref=e422]
+                      - generic [ref=e424]: Lambda Labs
+                  - cell "1x H100 PCIe" [ref=e425]:
+                    - generic [ref=e426]:
+                      - generic [ref=e427]: 1x H100 PCIe
+                      - img [ref=e429] [cursor=pointer]
+                  - cell "80GB" [ref=e431]
+                  - cell "26" [ref=e432]
+                  - cell "225GB" [ref=e433]
+                  - cell "On-Demand" [ref=e434]:
+                    - generic [ref=e435]:
+                      - generic [ref=e436]: On-Demand
+                      - img [ref=e438] [cursor=pointer]
+                  - cell "$3.29" [ref=e440]
+                  - cell "$3.29" [ref=e441]
+                  - cell "Unknown" [ref=e442]
+                  - cell "View" [ref=e443]:
+                    - link "View" [ref=e444] [cursor=pointer]:
+                      - /url: https://lambda.ai/instances?utm_source=getdeploying.com&utm_content=nvidia-h100
+                      - generic [ref=e445]: View
+                      - img [ref=e446]
+                - row "DigitalOcean logo DigitalOcean 1x H100 80GB 20 240GB On-Demand $3.39 $3.39 Available View" [ref=e448]:
+                  - cell "DigitalOcean logo DigitalOcean" [ref=e449]:
+                    - link "DigitalOcean logo DigitalOcean" [ref=e450] [cursor=pointer]:
+                      - /url: /digitalocean
+                      - img "DigitalOcean logo" [ref=e451]
+                      - generic [ref=e453]: DigitalOcean
+                  - cell "1x H100" [ref=e454]:
+                    - generic [ref=e455]:
+                      - generic [ref=e456]: 1x H100
+                      - img [ref=e458] [cursor=pointer]
+                  - cell "80GB" [ref=e460]
+                  - cell "20" [ref=e461]
+                  - cell "240GB" [ref=e462]
+                  - cell "On-Demand" [ref=e463]:
+                    - generic [ref=e464]:
+                      - generic [ref=e465]: On-Demand
+                      - img [ref=e467] [cursor=pointer]
+                  - cell "$3.39" [ref=e469]
+                  - cell "$3.39" [ref=e470]
+                  - cell "Available" [ref=e471]
+                  - cell "View" [ref=e472]:
+                    - link "View" [ref=e473] [cursor=pointer]:
+                      - /url: https://www.digitalocean.com/pricing/gpu-droplets?utm_source=getdeploying.com&utm_content=nvidia-h100
+                      - generic [ref=e474]: View
+                      - img [ref=e475]
+                - row "Together logo Together 1x H100 80GB -- -- On-Demand $3.36 $3.36 Unknown View" [ref=e477]:
+                  - cell "Together logo Together" [ref=e478]:
+                    - link "Together logo Together" [ref=e479] [cursor=pointer]:
+                      - /url: /together-ai
+                      - img "Together logo" [ref=e480]
+                      - generic [ref=e482]: Together
+                  - cell "1x H100" [ref=e483]:
+                    - generic [ref=e484]:
+                      - generic [ref=e485]: 1x H100
+                      - img [ref=e487] [cursor=pointer]
+                  - cell "80GB" [ref=e489]
+                  - cell "--" [ref=e490]
+                  - cell "--" [ref=e491]
+                  - cell "On-Demand" [ref=e492]:
+                    - generic [ref=e493]:
+                      - generic [ref=e494]: On-Demand
+                      - img [ref=e496] [cursor=pointer]
+                  - cell "$3.36" [ref=e498]
+                  - cell "$3.36" [ref=e499]
+                  - cell "Unknown" [ref=e500]
+                  - cell "View" [ref=e501]:
+                    - link "View" [ref=e502] [cursor=pointer]:
+                      - /url: https://together.ai/pricing?utm_source=getdeploying.com&utm_content=nvidia-h100
+                      - generic [ref=e503]: View
+                      - img [ref=e504]
+                - row "Hyperstack logo Hyperstack 1x H100 80GB 28 180GB On-Demand $1.90 $1.90 Unknown View" [ref=e506]:
+                  - cell "Hyperstack logo Hyperstack" [ref=e507]:
+                    - link "Hyperstack logo Hyperstack" [ref=e508] [cursor=pointer]:
+                      - /url: /hyperstack
+                      - img "Hyperstack logo" [ref=e509]
+                      - generic [ref=e511]: Hyperstack
+                  - cell "1x H100" [ref=e512]:
+                    - generic [ref=e513]:
+                      - generic [ref=e514]: 1x H100
+                      - img [ref=e516] [cursor=pointer]
+                  - cell "80GB" [ref=e518]
+                  - cell "28" [ref=e519]
+                  - cell "180GB" [ref=e520]
+                  - cell "On-Demand" [ref=e521]:
+                    - generic [ref=e522]:
+                      - generic [ref=e523]: On-Demand
+                      - img [ref=e525] [cursor=pointer]
+                  - cell "$1.90" [ref=e527]
+                  - cell "$1.90" [ref=e528]
+                  - cell "Unknown" [ref=e529]
+                  - cell "View" [ref=e530]:
+                    - link "View" [ref=e531] [cursor=pointer]:
+                      - /url: https://www.hyperstack.cloud/gpu-pricing?utm_source=getdeploying.com&utm_content=nvidia-h100
+                      - generic [ref=e532]: View
+                      - img [ref=e533]
+                - row "Oblivus logo Oblivus 1x H100 80GB 28 180GB On-Demand $1.98 $1.98 Unknown View" [ref=e535]:
+                  - cell "Oblivus logo Oblivus" [ref=e536]:
+                    - link "Oblivus logo Oblivus" [ref=e537] [cursor=pointer]:
+                      - /url: /oblivus
+                      - img "Oblivus logo" [ref=e538]
+                      - generic [ref=e540]: Oblivus
+                  - cell "1x H100" [ref=e541]:
+                    - generic [ref=e542]:
+                      - generic [ref=e543]: 1x H100
+                      - img [ref=e545] [cursor=pointer]
+                  - cell "80GB" [ref=e547]
+                  - cell "28" [ref=e548]
+                  - cell "180GB" [ref=e549]
+                  - cell "On-Demand" [ref=e550]:
+                    - generic [ref=e551]:
+                      - generic [ref=e552]: On-Demand
+                      - img [ref=e554] [cursor=pointer]
+                  - cell "$1.98" [ref=e556]
+                  - cell "$1.98" [ref=e557]
+                  - cell "Unknown" [ref=e558]
+                  - cell "View" [ref=e559]:
+                    - link "View" [ref=e560] [cursor=pointer]:
+                      - /url: https://oblivus.com/pricing/?utm_source=getdeploying.com&utm_content=nvidia-h100
+                      - generic [ref=e561]: View
+                      - img [ref=e562]
+                - row "FluidStack logo FluidStack 1x H100 80GB 48 256GB On-Demand $2.10 $2.10 Unknown View" [ref=e564]:
+                  - cell "FluidStack logo FluidStack" [ref=e565]:
+                    - link "FluidStack logo FluidStack" [ref=e566] [cursor=pointer]:
+                      - /url: /fluidstack
+                      - img "FluidStack logo" [ref=e567]
+                      - generic [ref=e569]: FluidStack
+                  - cell "1x H100" [ref=e570]:
+                    - generic [ref=e571]:
+                      - generic [ref=e572]: 1x H100
+                      - img [ref=e574] [cursor=pointer]
+                  - cell "80GB" [ref=e576]
+                  - cell "48" [ref=e577]
+                  - cell "256GB" [ref=e578]
+                  - cell "On-Demand" [ref=e579]:
+                    - generic [ref=e580]:
+                      - generic [ref=e581]: On-Demand
+                      - img [ref=e583] [cursor=pointer]
+                  - cell "$2.10" [ref=e585]
+                  - cell "$2.10" [ref=e586]
+                  - cell "Unknown" [ref=e587]
+                  - cell "View" [ref=e588]:
+                    - link "View" [ref=e589] [cursor=pointer]:
+                      - /url: https://www.fluidstack.io/resources/pricing?utm_source=getdeploying.com&utm_medium=affiliate&utm_campaign=brand&utm_content=nvidia-h100
+                      - generic [ref=e590]: View
+                      - img [ref=e591]
+                - row "Scaleway logo Scaleway 1x H100 80GB 24 240GB On-Demand $2.91 $2.91 Unknown View" [ref=e593]:
+                  - cell "Scaleway logo Scaleway" [ref=e594]:
+                    - link "Scaleway logo Scaleway" [ref=e595] [cursor=pointer]:
+                      - /url: /scaleway
+                      - img "Scaleway logo" [ref=e596]
+                      - generic [ref=e598]: Scaleway
+                  - cell "1x H100" [ref=e599]:
+                    - generic [ref=e600]:
+                      - generic [ref=e601]: 1x H100
+                      - img [ref=e603] [cursor=pointer]
+                  - cell "80GB" [ref=e605]
+                  - cell "24" [ref=e606]
+                  - cell "240GB" [ref=e607]
+                  - cell "On-Demand" [ref=e608]:
+                    - generic [ref=e609]:
+                      - generic [ref=e610]: On-Demand
+                      - img [ref=e612] [cursor=pointer]
+                  - cell "$2.91" [ref=e614]
+                  - cell "$2.91" [ref=e615]
+                  - cell "Unknown" [ref=e616]
+                  - cell "View" [ref=e617]:
+                    - link "View" [ref=e618] [cursor=pointer]:
+                      - /url: https://scaleway.com/pricing?utm_source=getdeploying.com&utm_content=nvidia-h100
+                      - generic [ref=e619]: View
+                      - img [ref=e620]
+                - row "Verda logo Verda 1x H100 SXM5 80GB 32 185GB On-Demand $3.25 $3.25 Unknown View" [ref=e622]:
+                  - cell "Verda logo Verda" [ref=e623]:
+                    - link "Verda logo Verda" [ref=e624] [cursor=pointer]:
+                      - /url: /verda
+                      - img "Verda logo" [ref=e625]
+                      - generic [ref=e627]: Verda
+                  - cell "1x H100 SXM5" [ref=e628]:
+                    - generic [ref=e629]:
+                      - generic [ref=e630]: 1x H100 SXM5
+                      - img [ref=e632] [cursor=pointer]
+                  - cell "80GB" [ref=e634]
+                  - cell "32" [ref=e635]
+                  - cell "185GB" [ref=e636]
+                  - cell "On-Demand" [ref=e637]:
+                    - generic [ref=e638]:
+                      - generic [ref=e639]: On-Demand
+                      - img [ref=e641] [cursor=pointer]
+                  - cell "$3.25" [ref=e643]
+                  - cell "$3.25" [ref=e644]
+                  - cell "Unknown" [ref=e645]
+                  - cell "View" [ref=e646]:
+                    - link "View" [ref=e647] [cursor=pointer]:
+                      - /url: https://verda.com/products?utm_source=getdeploying.com&utm_content=nvidia-h100
+                      - generic [ref=e648]: View
+                      - img [ref=e649]
+                - row "Gcore logo Gcore 8x H100 640GB 224 2.0TB On-Demand $3.18 $25.43 Unknown View" [ref=e651]:
+                  - cell "Gcore logo Gcore" [ref=e652]:
+                    - link "Gcore logo Gcore" [ref=e653] [cursor=pointer]:
+                      - /url: /gcore
+                      - img "Gcore logo" [ref=e654]
+                      - generic [ref=e656]: Gcore
+                  - cell "8x H100" [ref=e657]:
+                    - generic [ref=e658]:
+                      - generic [ref=e659]: 8x H100
+                      - img [ref=e661] [cursor=pointer]
+                  - cell "640GB" [ref=e663]
+                  - cell "224" [ref=e664]
+                  - cell "2.0TB" [ref=e665]
+                  - cell "On-Demand" [ref=e666]:
+                    - generic [ref=e667]:
+                      - generic [ref=e668]: On-Demand
+                      - img [ref=e670] [cursor=pointer]
+                  - cell "$3.18" [ref=e672]
+                  - cell "$25.43" [ref=e673]
+                  - cell "Unknown" [ref=e674]
+                  - cell "View" [ref=e675]:
+                    - link "View" [ref=e676] [cursor=pointer]:
+                      - /url: https://gcore.com/pricing/cloud?utm_source=getdeploying.com&utm_content=nvidia-h100
+                      - generic [ref=e677]: View
+                      - img [ref=e678]
+                - row "Nebius logo Nebius 1x H100 SXM 80GB 16 200GB On-Demand $3.85 $3.85 Unknown View" [ref=e680]:
+                  - cell "Nebius logo Nebius" [ref=e681]:
+                    - link "Nebius logo Nebius" [ref=e682] [cursor=pointer]:
+                      - /url: /nebius
+                      - img "Nebius logo" [ref=e683]
+                      - generic [ref=e685]: Nebius
+                  - cell "1x H100 SXM" [ref=e686]:
+                    - generic [ref=e687]:
+                      - generic [ref=e688]: 1x H100 SXM
+                      - img [ref=e690] [cursor=pointer]
+                  - cell "80GB" [ref=e692]
+                  - cell "16" [ref=e693]
+                  - cell "200GB" [ref=e694]
+                  - cell "On-Demand" [ref=e695]:
+                    - generic [ref=e696]:
+                      - generic [ref=e697]: On-Demand
+                      - img [ref=e699] [cursor=pointer]
+                  - cell "$3.85" [ref=e701]
+                  - cell "$3.85" [ref=e702]
+                  - cell "Unknown" [ref=e703]
+                  - cell "View" [ref=e704]:
+                    - link "View" [ref=e705] [cursor=pointer]:
+                      - /url: https://nebius.com/prices?utm_source=getdeploying.com&utm_content=nvidia-h100
+                      - generic [ref=e706]: View
+                      - img [ref=e707]
+                - row "Civo logo Civo 1x H100 SXM 80GB 23 184GB On-Demand $2.99 $2.99 Unknown View" [ref=e709]:
+                  - cell "Civo logo Civo" [ref=e710]:
+                    - link "Civo logo Civo" [ref=e711] [cursor=pointer]:
+                      - /url: /civo
+                      - img "Civo logo" [ref=e712]
+                      - generic [ref=e714]: Civo
+                  - cell "1x H100 SXM" [ref=e715]:
+                    - generic [ref=e716]:
+                      - generic [ref=e717]: 1x H100 SXM
+                      - img [ref=e719] [cursor=pointer]
+                  - cell "80GB" [ref=e721]
+                  - cell "23" [ref=e722]
+                  - cell "184GB" [ref=e723]
+                  - cell "On-Demand" [ref=e724]:
+                    - generic [ref=e725]:
+                      - generic [ref=e726]: On-Demand
+                      - img [ref=e728] [cursor=pointer]
+                  - cell "$2.99" [ref=e730]
+                  - cell "$2.99" [ref=e731]
+                  - cell "Unknown" [ref=e732]
+                  - cell "View" [ref=e733]:
+                    - link "View" [ref=e734] [cursor=pointer]:
+                      - /url: https://www.civo.com/pricing?utm_source=getdeploying.com&utm_content=nvidia-h100
+                      - generic [ref=e735]: View
+                      - img [ref=e736]
+                - row "Sesterce logo Sesterce 1x H100 80GB 20 128GB On-Demand $3.00 $3.00 Available View" [ref=e738]:
+                  - cell "Sesterce logo Sesterce" [ref=e739]:
+                    - link "Sesterce logo Sesterce" [ref=e740] [cursor=pointer]:
+                      - /url: /sesterce
+                      - img "Sesterce logo" [ref=e741]
+                      - generic [ref=e743]: Sesterce
+                  - cell "1x H100" [ref=e744]:
+                    - generic [ref=e745]:
+                      - generic [ref=e746]: 1x H100
+                      - img [ref=e748] [cursor=pointer]
+                  - cell "80GB" [ref=e750]
+                  - cell "20" [ref=e751]
+                  - cell "128GB" [ref=e752]
+                  - cell "On-Demand" [ref=e753]:
+                    - generic [ref=e754]:
+                      - generic [ref=e755]: On-Demand
+                      - img [ref=e757] [cursor=pointer]
+                  - cell "$3.00" [ref=e759]
+                  - cell "$3.00" [ref=e760]
+                  - cell "Available" [ref=e761]
+                  - cell "View" [ref=e762]:
+                    - link "View" [ref=e763] [cursor=pointer]:
+                      - /url: https://cloud.sesterce.com/compute?utm_source=getdeploying.com&utm_content=nvidia-h100
+                      - generic [ref=e764]: View
+                      - img [ref=e765]
+              - rowgroup [ref=e767]:
+                - row "View all 278 offerings..." [ref=e768] [cursor=pointer]:
+                  - cell "View all 278 offerings..." [ref=e769]:
+                    - button "View all 278 offerings..." [ref=e770]:
+                      - text: View all
+                      - generic [ref=e771]: "278"
+                      - text: offerings...
+          - paragraph [ref=e773]:
+            - text: "Heads up: We do our best to keep these specs & prices accurate. However, cloud costs may fluctuate based on region, usage, and other factors not listed here. These are estimates based on"
+            - link "common setups" [ref=e774] [cursor=pointer]:
+              - /url: /reference/how-we-estimate-costs
+            - text: and are for informational purposes only. Always verify current rates & exact specs with the provider before provisioning.
+        - generic [ref=e775]:
+          - heading "Frequently Asked Questions" [level=2] [ref=e776]
+          - generic [ref=e777]:
+            - generic [ref=e778]:
+              - term [ref=e779]:
+                - heading "Why choose the H100?" [level=3] [ref=e780]
+              - definition [ref=e781]:
+                - paragraph [ref=e782]:
+                  - text: 80GB HBM3 with 900 GB/s NVLink for multi-node training. FP8 Transformer Engine for improved training throughput over
+                  - link "A100" [ref=e783] [cursor=pointer]:
+                    - /url: /gpus/nvidia-a100
+                  - text: . The standard choice for large-scale AI training and high-throughput inference.
+            - generic [ref=e784]:
+              - term [ref=e785]:
+                - heading "When is the H100 not a good fit?" [level=3] [ref=e786]
+              - definition [ref=e787]:
+                - paragraph [ref=e788]:
+                  - text: May be more than needed for single-GPU inference on models under 30B parameters. Consider the
+                  - link "L40S" [ref=e789] [cursor=pointer]:
+                    - /url: /gpus/nvidia-l40s
+                  - text: or
+                  - link "A10" [ref=e790] [cursor=pointer]:
+                    - /url: /gpus/nvidia-a10
+                  - text: for cost-effective inference workloads.
+            - generic [ref=e791]:
+              - term [ref=e792]:
+                - heading "Are H100 prices going up or down?" [level=3] [ref=e793]
+              - definition [ref=e794]:
+                - paragraph [ref=e795]: On-demand pricing has increased by about 4% since June 2025, from $3.48 to $3.64/hr per GPU.
+            - generic [ref=e796]:
+              - term [ref=e797]:
+                - heading "What size AI models can the H100 run?" [level=3] [ref=e798]
+              - definition [ref=e799]:
+                - paragraph [ref=e800]: With 80GB of VRAM, the H100 is well suited to 30B-class models in FP16, and 70B-class models in 4-bit or 8-bit quantized form.
+            - generic [ref=e801]:
+              - term [ref=e802]:
+                - heading "How much VRAM does the H100 have?" [level=3] [ref=e803]
+              - definition [ref=e804]:
+                - paragraph [ref=e805]: The H100 has 80GB of VRAM. Multi-GPU setups increase total memory, but that memory is not automatically pooled across GPUs.
+            - generic [ref=e806]:
+              - term [ref=e807]:
+                - heading "What is the H100's memory bandwidth?" [level=3] [ref=e808]
+              - definition [ref=e809]:
+                - paragraph [ref=e810]: The H100 has 3,350 GB/s of memory bandwidth. Higher bandwidth helps with faster data transfer between GPU memory and compute cores.
+            - generic [ref=e811]:
+              - term [ref=e812]:
+                - heading "What data types does the H100 support?" [level=3] [ref=e813]
+              - definition [ref=e814]:
+                - paragraph [ref=e815]:
+                  - text: The H100 supports 7 precision formats.
+                  - strong [ref=e816]: "Training:"
+                  - text: BF16, FP16, TF32, FP32.
+                  - strong [ref=e817]: "Inference:"
+                  - text: FP8, INT8.
+                  - strong [ref=e818]: "Scientific:"
+                  - text: FP64.
+            - generic [ref=e819]:
+              - term [ref=e820]:
+                - heading "Does the H100 support NVLink?" [level=3] [ref=e821]
+              - definition [ref=e822]:
+                - paragraph [ref=e823]: Yes. The H100 supports NVLink with 900 GB/s of bidirectional bandwidth. This helps accelerate multi-GPU communication.
+            - generic [ref=e824]:
+              - term [ref=e825]:
+                - heading "How much does the H100 cost per hour?" [level=3] [ref=e826]
+              - definition [ref=e827]:
+                - paragraph [ref=e828]: H100 pricing currently ranges from $0.52/hr to $14.90/hr per GPU, depending on the provider, instance type, and billing model.
+            - generic [ref=e829]:
+              - term [ref=e830]:
+                - heading "How much does the H100 cost per month?" [level=3] [ref=e831]
+              - definition [ref=e832]:
+                - paragraph [ref=e833]: At 720 hours per month, one H100 can cost between $375.52 to $10,730.24 per month, depending on the provider. Reserved and spot pricing can lower that further.
+            - generic [ref=e834]:
+              - term [ref=e835]:
+                - heading "Which cloud providers offer the H100?" [level=3] [ref=e836]
+              - definition [ref=e837]:
+                - paragraph [ref=e838]: The H100 is available from 45 cloud providers, including Runpod, Civo, Sesterce. Pricing and availability vary by region and billing model.
+            - generic [ref=e839]:
+              - term [ref=e840]:
+                - heading "Can I rent the H100 in the cloud?" [level=3] [ref=e841]
+              - definition [ref=e842]:
+                - paragraph [ref=e843]: "Yes. We currently track 278 H100 listings across 45 cloud providers:"
+                - table [ref=e844]:
+                  - rowgroup [ref=e845]:
+                    - row "Billing type Listings Avg $/GPU/hr" [ref=e846]:
+                      - columnheader "Billing type" [ref=e847]
+                      - columnheader "Listings" [ref=e848]
+                      - columnheader "Avg $/GPU/hr" [ref=e849]
+                  - rowgroup [ref=e850]:
+                    - row "On-demand 142 $3.75/hr" [ref=e851]:
+                      - cell "On-demand" [ref=e852]
+                      - cell "142" [ref=e853]
+                      - cell "$3.75/hr" [ref=e854]
+                    - row "Reserved 94 $3.34/hr" [ref=e855]:
+                      - cell "Reserved" [ref=e856]
+                      - cell "94" [ref=e857]
+                      - cell "$3.34/hr" [ref=e858]
+                    - row "Spot 38 $1.84/hr" [ref=e859]:
+                      - cell "Spot" [ref=e860]
+                      - cell "38" [ref=e861]
+                      - cell "$1.84/hr" [ref=e862]
+                    - row "Custom contract 4 $1.89/hr" [ref=e863]:
+                      - cell "Custom contract" [ref=e864]
+                      - cell "4" [ref=e865]
+                      - cell "$1.89/hr" [ref=e866]
+        - generic [ref=e867]:
+          - heading "Technical Specifications" [level=2] [ref=e868]
+          - table [ref=e870]:
+            - rowgroup [ref=e871]:
+              - row "H100 SXM H100 PCIe H100 NVL" [ref=e872]:
+                - columnheader [ref=e873]
+                - columnheader "H100 SXM" [ref=e874]
+                - columnheader "H100 PCIe" [ref=e875]
+                - columnheader "H100 NVL" [ref=e876]
+            - rowgroup [ref=e877]:
+              - row "FP64 34 TFLOPS 26 TFLOPS 68 TFLOPS" [ref=e878]:
+                - cell "FP64" [ref=e879]:
+                  - strong [ref=e880]: FP64
+                - cell "34 TFLOPS" [ref=e881]
+                - cell "26 TFLOPS" [ref=e882]
+                - cell "68 TFLOPS" [ref=e883]
+              - row "FP64 Tensor Core 67 TFLOPS 51 TFLOPS 134 TFLOPS" [ref=e884]:
+                - cell "FP64 Tensor Core" [ref=e885]:
+                  - strong [ref=e886]: FP64 Tensor Core
+                - cell "67 TFLOPS" [ref=e887]
+                - cell "51 TFLOPS" [ref=e888]
+                - cell "134 TFLOPS" [ref=e889]
+              - row "FP32 67 TFLOPS 51 TFLOPS 134 TFLOPS" [ref=e890]:
+                - cell "FP32" [ref=e891]:
+                  - strong [ref=e892]: FP32
+                - cell "67 TFLOPS" [ref=e893]
+                - cell "51 TFLOPS" [ref=e894]
+                - cell "134 TFLOPS" [ref=e895]
+              - row "TF32 Tensor Core 989 TFLOPS 756 TFLOPS 1,979 TFLOPS" [ref=e896]:
+                - cell "TF32 Tensor Core" [ref=e897]:
+                  - strong [ref=e898]: TF32 Tensor Core
+                - cell "989 TFLOPS" [ref=e899]
+                - cell "756 TFLOPS" [ref=e900]
+                - cell "1,979 TFLOPS" [ref=e901]
+              - row "BFLOAT16 Tensor Core 1,979 TFLOPS 1,513 TFLOPS 3,958 TFLOPS" [ref=e902]:
+                - cell "BFLOAT16 Tensor Core" [ref=e903]:
+                  - strong [ref=e904]: BFLOAT16 Tensor Core
+                - cell "1,979 TFLOPS" [ref=e905]
+                - cell "1,513 TFLOPS" [ref=e906]
+                - cell "3,958 TFLOPS" [ref=e907]
+              - row "FP16 Tensor Core 1,979 TFLOPS 1,513 TFLOPS 3,958 TFLOPS" [ref=e908]:
+                - cell "FP16 Tensor Core" [ref=e909]:
+                  - strong [ref=e910]: FP16 Tensor Core
+                - cell "1,979 TFLOPS" [ref=e911]
+                - cell "1,513 TFLOPS" [ref=e912]
+                - cell "3,958 TFLOPS" [ref=e913]
+              - row "FP8 Tensor Core 3,958 TFLOPS 3,026 TFLOPS 7,916 TFLOPS" [ref=e914]:
+                - cell "FP8 Tensor Core" [ref=e915]:
+                  - strong [ref=e916]: FP8 Tensor Core
+                - cell "3,958 TFLOPS" [ref=e917]
+                - cell "3,026 TFLOPS" [ref=e918]
+                - cell "7,916 TFLOPS" [ref=e919]
+              - row "INT8 Tensor Core 3,958 TOPS 3,026 TOPS 7,916 TOPS" [ref=e920]:
+                - cell "INT8 Tensor Core" [ref=e921]:
+                  - strong [ref=e922]: INT8 Tensor Core
+                - cell "3,958 TOPS" [ref=e923]
+                - cell "3,026 TOPS" [ref=e924]
+                - cell "7,916 TOPS" [ref=e925]
+              - row "GPU Memory 80GB 80GB 188GB" [ref=e926]:
+                - cell "GPU Memory" [ref=e927]:
+                  - strong [ref=e928]: GPU Memory
+                - cell "80GB" [ref=e929]
+                - cell "80GB" [ref=e930]
+                - cell "188GB" [ref=e931]
+              - row "GPU Memory Bandwidth 3.35TB/s 2TB/s 7.8TB/s" [ref=e932]:
+                - cell "GPU Memory Bandwidth" [ref=e933]:
+                  - strong [ref=e934]: GPU Memory Bandwidth
+                - cell "3.35TB/s" [ref=e935]
+                - cell "2TB/s" [ref=e936]
+                - cell "7.8TB/s" [ref=e937]
+              - row "Decoders 7 NVDEC, 7 JPEG 7 NVDEC, 7 JPEG 14 NVDEC, 14 JPEG" [ref=e938]:
+                - cell "Decoders" [ref=e939]:
+                  - strong [ref=e940]: Decoders
+                - cell "7 NVDEC, 7 JPEG" [ref=e941]
+                - cell "7 NVDEC, 7 JPEG" [ref=e942]
+                - cell "14 NVDEC, 14 JPEG" [ref=e943]
+              - row "Max Thermal Design Power (TDP) Up to 700W 300-350W 2x 350-400W" [ref=e944]:
+                - cell "Max Thermal Design Power (TDP)" [ref=e945]:
+                  - strong [ref=e946]: Max Thermal Design Power (TDP)
+                - cell "Up to 700W" [ref=e947]
+                - cell "300-350W" [ref=e948]
+                - cell "2x 350-400W" [ref=e949]
+              - row "Multi-Instance GPUs Up to 7 MIGs @ 10GB each Up to 7 MIGs @ 10GB each Up to 14 MIGs @ 12GB each" [ref=e950]:
+                - cell "Multi-Instance GPUs" [ref=e951]:
+                  - strong [ref=e952]: Multi-Instance GPUs
+                - cell "Up to 7 MIGs @ 10GB each" [ref=e953]
+                - cell "Up to 7 MIGs @ 10GB each" [ref=e954]
+                - cell "Up to 14 MIGs @ 12GB each" [ref=e955]
+              - row "Form Factor SXM PCIe, dual-slot, air-cooled 2x PCIe, dual-slot, air-cooled" [ref=e956]:
+                - cell "Form Factor" [ref=e957]:
+                  - strong [ref=e958]: Form Factor
+                - cell "SXM" [ref=e959]
+                - cell "PCIe, dual-slot, air-cooled" [ref=e960]
+                - cell "2x PCIe, dual-slot, air-cooled" [ref=e961]
+          - paragraph [ref=e962]:
+            - text: "Source:"
+            - link "official Nvidia H100 datasheet" [ref=e963] [cursor=pointer]:
+              - /url: https://resources.nvidia.com/en-us-gpu-resources/h100-datasheet-24306
+            - text: .
+        - generic [ref=e964]:
+          - heading "Alternatives to Nvidia H100" [level=2] [ref=e965]
+          - list [ref=e966]:
+            - link "Nvidia H200 logo Nvidia H200 Next generation with 76% more memory. From $1.00/hr per GPU across 31 providers." [ref=e967] [cursor=pointer]:
+              - /url: /gpus/nvidia-h100-vs-nvidia-h200
+              - generic [ref=e968]:
+                - generic [ref=e969]:
+                  - img "Nvidia H200 logo" [ref=e970]
+                  - generic [ref=e971]:
+                    - heading "Nvidia H200" [level=3] [ref=e972]
+                    - paragraph [ref=e973]: Next generation with 76% more memory. From $1.00/hr per GPU across 31 providers.
+                - img [ref=e974]
+            - link "Nvidia A100 logo Nvidia A100 Previous generation, more affordable. From $0.23/hr per GPU across 38 providers." [ref=e976] [cursor=pointer]:
+              - /url: /gpus/nvidia-a100-vs-nvidia-h100
+              - generic [ref=e977]:
+                - generic [ref=e978]:
+                  - img "Nvidia A100 logo" [ref=e979]
+                  - generic [ref=e980]:
+                    - heading "Nvidia A100" [level=3] [ref=e981]
+                    - paragraph [ref=e982]: Previous generation, more affordable. From $0.23/hr per GPU across 38 providers.
+                - img [ref=e983]
+            - link "AMD MI300X logo AMD MI300X AMD alternative with 2.4x more memory. From $0.95/hr per GPU across 8 providers." [ref=e985] [cursor=pointer]:
+              - /url: /gpus/amd-mi300x-vs-nvidia-h100
+              - generic [ref=e986]:
+                - generic [ref=e987]:
+                  - img "AMD MI300X logo" [ref=e988]
+                  - generic [ref=e989]:
+                    - heading "AMD MI300X" [level=3] [ref=e990]
+                    - paragraph [ref=e991]: AMD alternative with 2.4x more memory. From $0.95/hr per GPU across 8 providers.
+                - img [ref=e992]
+        - paragraph [ref=e994]:
+          - generic [ref=e995]:
+            - text: Last updated
+            - time [ref=e996]: June 11, 2026
+        - link "GPUhub Logo GPUhub Our sponsor Fully Dedicated GPU Servers No Virtualization. No Shared GPUs Stable Performance for AI Training & Inference Full Control for Production Workloads Learn more" [ref=e998] [cursor=pointer]:
+          - /url: https://gpuhub.com/?utm_source=getdeploying.com&utm_medium=paid&utm_content=banner-big
+          - generic [ref=e999]:
+            - generic [ref=e1000]:
+              - img "GPUhub Logo" [ref=e1002]
+              - generic [ref=e1003]: GPUhub
+            - generic [ref=e1004]: Our sponsor
+          - generic [ref=e1005]:
+            - generic [ref=e1006]:
+              - generic [ref=e1007]:
+                - img [ref=e1008]
+                - generic [ref=e1010]: Fully Dedicated GPU Servers
+              - generic [ref=e1011]:
+                - img [ref=e1012]
+                - generic [ref=e1014]: No Virtualization. No Shared GPUs
+              - generic [ref=e1015]:
+                - img [ref=e1016]
+                - generic [ref=e1018]: Stable Performance for AI Training & Inference
+              - generic [ref=e1019]:
+                - img [ref=e1020]
+                - generic [ref=e1022]: Full Control for Production Workloads
+            - generic [ref=e1024]:
+              - generic [ref=e1025]: Learn more
+              - img [ref=e1026]
+        - link "Back to top ↑" [ref=e1029] [cursor=pointer]:
+          - /url: "#top"
+    - contentinfo [ref=e1030]:
+      - generic [ref=e1031]:
+        - generic [ref=e1032]:
+          - generic [ref=e1033]:
+            - link "GetDeploying logo" [ref=e1034] [cursor=pointer]:
+              - /url: /
+              - img "GetDeploying logo" [ref=e1035]
+            - paragraph [ref=e1036]: Compare cloud providers for your next project.
+            - paragraph [ref=e1037]:
+              - link "Add your company" [ref=e1038] [cursor=pointer]:
+                - /url: /add
+            - paragraph [ref=e1039]:
+              - link "GPU Prices API" [ref=e1040] [cursor=pointer]:
+                - /url: /api
+          - generic [ref=e1041]:
+            - generic [ref=e1042]:
+              - paragraph [ref=e1043]: Compare Clouds
+              - list [ref=e1044]:
+                - listitem [ref=e1045]:
+                  - link "AWS vs Hetzner" [ref=e1046] [cursor=pointer]:
+                    - /url: /aws-vs-hetzner
+                - listitem [ref=e1047]:
+                  - link "AWS vs Google Cloud" [ref=e1048] [cursor=pointer]:
+                    - /url: /aws-vs-google-cloud
+                - listitem [ref=e1049]:
+                  - link "Railway vs Render" [ref=e1050] [cursor=pointer]:
+                    - /url: /railway-vs-render
+                - listitem [ref=e1051]:
+                  - link "Fal vs Replicate" [ref=e1052] [cursor=pointer]:
+                    - /url: /fal-ai-vs-replicate
+                - listitem [ref=e1053]:
+                  - link "Lambda Labs vs Runpod" [ref=e1054] [cursor=pointer]:
+                    - /url: /lambda-labs-vs-runpod
+                - listitem [ref=e1055]:
+                  - link "Runpod vs Vast.ai" [ref=e1056] [cursor=pointer]:
+                    - /url: /runpod-vs-vast-ai
+                - listitem [ref=e1057]:
+                  - link "DigitalOcean vs Render" [ref=e1058] [cursor=pointer]:
+                    - /url: /digitalocean-vs-render
+                - listitem [ref=e1059]:
+                  - link "DigitalOcean vs Hetzner" [ref=e1060] [cursor=pointer]:
+                    - /url: /digitalocean-vs-hetzner
+                - listitem [ref=e1061]:
+                  - link "Compare Providers" [ref=e1062] [cursor=pointer]:
+                    - /url: /compare
+            - generic [ref=e1063]:
+              - paragraph [ref=e1064]: Compare GPUs
+              - list [ref=e1065]:
+                - listitem [ref=e1066]:
+                  - link "Nvidia H100 vs H200" [ref=e1067] [cursor=pointer]:
+                    - /url: /gpus/nvidia-h100-vs-nvidia-h200
+                - listitem [ref=e1068]:
+                  - link "Nvidia H100 vs RTX 5090" [ref=e1069] [cursor=pointer]:
+                    - /url: /gpus/nvidia-h100-vs-nvidia-rtx5090
+                - listitem [ref=e1070]:
+                  - link "Nvidia A100 vs H100" [ref=e1071] [cursor=pointer]:
+                    - /url: /gpus/nvidia-h100-vs-nvidia-a100
+                - listitem [ref=e1072]:
+                  - link "Nvidia B200 vs H100" [ref=e1073] [cursor=pointer]:
+                    - /url: /gpus/nvidia-b200-vs-nvidia-h100
+                - listitem [ref=e1074]:
+                  - link "Nvidia GH200 vs H100" [ref=e1075] [cursor=pointer]:
+                    - /url: /gpus/nvidia-gh200-vs-nvidia-h100
+                - listitem [ref=e1076]:
+                  - link "Nvidia L40S vs L40" [ref=e1077] [cursor=pointer]:
+                    - /url: /gpus/nvidia-l40s-vs-nvidia-l40
+                - listitem [ref=e1078]:
+                  - link "AMD MI300X vs Nvidia H100" [ref=e1079] [cursor=pointer]:
+                    - /url: /gpus/amd-mi300x-vs-nvidia-h100
+          - generic [ref=e1080]:
+            - generic [ref=e1081]:
+              - paragraph [ref=e1082]: Resources
+              - list [ref=e1083]:
+                - listitem [ref=e1084]:
+                  - link "Cloud Egress Costs" [ref=e1085] [cursor=pointer]:
+                    - /url: /reference/data-egress
+                - listitem [ref=e1086]:
+                  - link "GPU Price Comparison" [ref=e1087] [cursor=pointer]:
+                    - /url: /gpus
+                - listitem [ref=e1088]:
+                  - link "Object Storage Costs" [ref=e1089] [cursor=pointer]:
+                    - /url: /reference/object-storage
+                - listitem [ref=e1090]:
+                  - link "VPS Price Comparison" [ref=e1091] [cursor=pointer]:
+                    - /url: /reference/compute-prices
+                - listitem [ref=e1092]:
+                  - link "Datacenters in country" [ref=e1093] [cursor=pointer]:
+                    - /url: /datacenters-in
+                - listitem [ref=e1094]:
+                  - link "Cloud providers by headquarters" [ref=e1095] [cursor=pointer]:
+                    - /url: /cloud-providers-from
+                - listitem [ref=e1096]:
+                  - link "Cloud providers from Europe 🇪🇺" [ref=e1097] [cursor=pointer]:
+                    - /url: /cloud-providers-from-europe
+            - generic [ref=e1098]:
+              - paragraph [ref=e1099]: Guides
+              - list [ref=e1100]:
+                - listitem [ref=e1101]:
+                  - link "Self-Hosting Next.js" [ref=e1102] [cursor=pointer]:
+                    - /url: /guides/deploy-nextjs
+                - listitem [ref=e1103]:
+                  - link "Secure an Ubuntu Server" [ref=e1104] [cursor=pointer]:
+                    - /url: /guides/secure-ubuntu-server
+                - listitem [ref=e1105]:
+                  - link "Running Llama 3 locally" [ref=e1106] [cursor=pointer]:
+                    - /url: /guides/local-llama
+                - listitem [ref=e1107]:
+                  - link "How to run Mistral locally" [ref=e1108] [cursor=pointer]:
+                    - /url: /guides/local-mistral
+                - listitem [ref=e1109]:
+                  - link "How to run Gemma 4 locally" [ref=e1110] [cursor=pointer]:
+                    - /url: /guides/local-gemma4
+                - listitem [ref=e1111]:
+                  - link "Gemma 4 with OpenClaw" [ref=e1112] [cursor=pointer]:
+                    - /url: /guides/gemma4-openclaw
+                - listitem [ref=e1113]:
+                  - link "Vercel Alternatives" [ref=e1114] [cursor=pointer]:
+                    - /url: /guides/vercel-alternatives
+                - listitem [ref=e1115]:
+                  - link "Coolify vs Dokploy" [ref=e1116] [cursor=pointer]:
+                    - /url: /guides/coolify-vs-dokploy
+                - listitem [ref=e1117]:
+                  - link "Local LLMs with LM Studio" [ref=e1118] [cursor=pointer]:
+                    - /url: /guides/local-llm-mac-lm-studio
+                - listitem [ref=e1119]:
+                  - link "Bonsai 1-bit LLM" [ref=e1120] [cursor=pointer]:
+                    - /url: /guides/bonsai-1bit-llm
+                - listitem [ref=e1121]:
+                  - link "LM Studio with OpenCode" [ref=e1122] [cursor=pointer]:
+                    - /url: /guides/lm-studio-opencode
+                - listitem [ref=e1123]:
+                  - link "All Guides" [ref=e1124] [cursor=pointer]:
+                    - /url: /guides
+          - generic [ref=e1125]:
+            - generic [ref=e1126]:
+              - paragraph [ref=e1127]: LLM Pricing
+              - list [ref=e1128]:
+                - listitem [ref=e1129]:
+                  - link "Claude Sonnet 4.6 Pricing" [ref=e1130] [cursor=pointer]:
+                    - /url: /llms/claude-sonnet-4-6
+                - listitem [ref=e1131]:
+                  - link "GPT-5.4 Pricing" [ref=e1132] [cursor=pointer]:
+                    - /url: /llms/gpt-5.4
+                - listitem [ref=e1133]:
+                  - link "Gemini 3.1 Pro Pricing" [ref=e1134] [cursor=pointer]:
+                    - /url: /llms/gemini-3.1-pro-preview
+                - listitem [ref=e1135]:
+                  - link "All LLM Prices" [ref=e1136] [cursor=pointer]:
+                    - /url: /llms
+            - generic [ref=e1137]:
+              - paragraph [ref=e1138]: Legal
+              - list [ref=e1139]:
+                - listitem [ref=e1140]:
+                  - link "Terms and Conditions" [ref=e1141] [cursor=pointer]:
+                    - /url: /terms
+                - listitem [ref=e1142]:
+                  - link "Privacy Policy" [ref=e1143] [cursor=pointer]:
+                    - /url: /privacy
+                - listitem [ref=e1144]:
+                  - link "Legal Notice" [ref=e1145] [cursor=pointer]:
+                    - /url: /legal
+        - generic [ref=e1146]:
+          - paragraph [ref=e1147]: All product names, logos, brands, trademarks and registered trademarks are property of their respective owners. All company, product and service names used in this website are for identification purposes only. Use of these names, trademarks and brands does not indicate endorsement. *Redis is a trademark of Redis Labs Ltd. Any rights therein are reserved to Redis Labs Ltd.
+          - paragraph [ref=e1148]: © 2026 GetDeploying.com
+  - generic [ref=e1149]: $0

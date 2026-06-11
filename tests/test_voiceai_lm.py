@@ -31,6 +31,7 @@ def test_voiceai_lm_forward():
         freeze_backbone=True,
         train_user_audio=True,
         dtype="float32",
+        use_depth_transformer=False,  # legacy heads expose eager logits
     )
     model = VoiceAILM(cfg)
 
@@ -41,6 +42,44 @@ def test_voiceai_lm_forward():
     assert out["text_logits"].shape[:2] == (B, T)
     assert out["asst_audio_logits"].shape == (B, K, T, model.cfg.codebook_size + 1)
     assert out["user_audio_logits"].shape == (B, K, T, model.cfg.codebook_size + 1)
+
+
+@pytest.mark.slow
+def test_voiceai_lm_depth_transformer_forward():
+    from voiceai.model.audio_adapter import MimiDepthTransformer
+    from voiceai.model.voiceai_lm import VoiceAIConfig, VoiceAILM
+
+    cfg = VoiceAIConfig(
+        backbone=_backbone(),
+        freeze_backbone=True,
+        train_user_audio=True,
+        dtype="float32",
+        depth_dim=32,
+        depth_layers=1,
+    )
+    model = VoiceAILM(cfg)
+    assert isinstance(model.asst_audio_out, MimiDepthTransformer)
+
+    B, K, T = 1, 8, 6
+    user_codes = torch.randint(0, model.cfg.codebook_size, (B, K, T))
+    asst_codes = torch.randint(0, model.cfg.codebook_size, (B, K, T))
+    text_ids = torch.full((B, T), 0, dtype=torch.long)
+    labels_audio = torch.randint(0, model.cfg.codebook_size, (B, K, T))
+    assert model.audio_in_asst is not None  # model hears its own stream
+    out = model(
+        text_ids=text_ids,
+        user_audio_codes=user_codes,
+        asst_audio_codes=asst_codes,
+        labels_asst_audio=labels_audio,
+        labels_user_audio=labels_audio,
+    )
+    # depth transformer: no eager logits, but losses exist and backprop
+    assert "asst_audio_logits" not in out
+    assert out["loss"] is not None
+    out["loss"].backward()
+    # per-frame sampling works
+    codes = model.asst_audio_out.sample(out["hidden"][:, -1].detach())
+    assert codes.shape == (B, K)
 
 
 @pytest.mark.slow

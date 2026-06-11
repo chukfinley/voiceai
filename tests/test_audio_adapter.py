@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import torch
 
-from voiceai.model.audio_adapter import AudioAdapter, MimiOutputHeads
+from voiceai.model.audio_adapter import AudioAdapter, MimiDepthTransformer, MimiOutputHeads
 
 
 def test_audio_adapter_shape():
@@ -56,6 +56,53 @@ def test_mimi_output_heads_loss():
     loss = head.loss(h, targets)
     assert loss.dim() == 0
     assert torch.isfinite(loss)
+
+
+def test_depth_transformer_loss_and_grad():
+    d, K, V = 64, 8, 16
+    head = MimiDepthTransformer(d_model=d, num_codebooks=K, codebook_size=V, depth_dim=32, num_layers=1, num_heads=2)
+    h = torch.randn(2, 10, d, requires_grad=True)
+    targets = torch.randint(0, V, (2, K, 10))
+    targets[1, :, 7:] = -100  # masked tail
+    loss = head.loss(h, targets)
+    assert loss.dim() == 0 and torch.isfinite(loss)
+    loss.backward()
+    assert h.grad is not None and h.grad.abs().sum() > 0
+
+
+def test_depth_transformer_fully_masked_frame():
+    d, K, V = 32, 4, 8
+    head = MimiDepthTransformer(d_model=d, num_codebooks=K, codebook_size=V, depth_dim=16, num_layers=1, num_heads=2)
+    h = torch.randn(1, 5, d)
+    targets = torch.full((1, K, 5), -100, dtype=torch.long)
+    loss = head.loss(h, targets)
+    assert float(loss) == 0.0
+
+
+def test_depth_transformer_sample():
+    d, K, V = 32, 4, 8
+    head = MimiDepthTransformer(d_model=d, num_codebooks=K, codebook_size=V, depth_dim=16, num_layers=1, num_heads=2)
+    h = torch.randn(3, d)
+    codes = head.sample(h, temperature=0.0)  # greedy
+    assert codes.shape == (3, K)
+    assert codes.min() >= 0 and codes.max() <= V  # V = the extra BOS/EOS class
+
+
+def test_depth_transformer_causality():
+    """Logits for codebook k must not depend on codebooks >= k."""
+    d, K, V = 32, 4, 8
+    head = MimiDepthTransformer(d_model=d, num_codebooks=K, codebook_size=V, depth_dim=16, num_layers=1, num_heads=2)
+    head.eval()
+    h = torch.randn(1, d)
+    codes_a = torch.randint(0, V, (1, K))
+    codes_b = codes_a.clone()
+    codes_b[0, 2] = (codes_b[0, 2] + 1) % V  # change codebook 2
+    with torch.no_grad():
+        la = head._logits(h, codes_a)
+        lb = head._logits(h, codes_b)
+    # positions 0..2 see only codebooks < 2 (embedding of code k feeds pos k+1)
+    torch.testing.assert_close(la[:, :3], lb[:, :3])
+    assert not torch.allclose(la[:, 3], lb[:, 3])
 
 
 def test_audio_adapter_grad_flow():

@@ -67,7 +67,7 @@ def build_data(n_train: int, n_test: int) -> None:
     print(f"[data] {len(train)} train  +  {len(test)} held-out test clips")
 
 
-def train(backbone: str, steps: int) -> None:
+def train(backbone: str, steps: int, lora: bool = False, lr: str = "3e-4") -> None:
     cmd = [
         sys.executable, "-m", "voiceai.training.stage1_adapter",
         "--manifest", str(TRAIN_MANIFEST),
@@ -76,7 +76,7 @@ def train(backbone: str, steps: int) -> None:
         "--steps", str(steps),
         "--batch-size", "4",
         "--grad-accum", "2",
-        "--lr", "3e-4",
+        "--lr", lr,
         "--warmup", "100",
         "--log-every", "50",
         "--ckpt-every", "100000",
@@ -86,13 +86,20 @@ def train(backbone: str, steps: int) -> None:
         "--dtype", "bfloat16",
         "--wandb-disable",
     ]
+    if lora:
+        cmd.append("--lora-backbone")
     print("[train] real Stage-1 ASR mini:\n  " + " ".join(cmd))
     if subprocess.run(cmd).returncode != 0:
         sys.exit("[train] FAILED")
 
 
 def evaluate_heldout(max_text_len: int = 120) -> None:
-    """Transcribe the held-out clips the model never saw — real generalisation."""
+    """Transcribe held-out AND a few train clips.
+
+    Train-WER ~0 but held-out WER huge => generalisation/grounding gap (need more
+    data or backbone adaptation), not a code bug. Both huge => the setup can't
+    even fit => bug or far too little capacity/steps.
+    """
     import torch
 
     from voiceai.model.mimi_utils import load_mimi, mimi_encode, resample_to_mimi
@@ -111,36 +118,41 @@ def evaluate_heldout(max_text_len: int = 120) -> None:
     if tok.pad_token_id is None:
         tok.pad_token = tok.eos_token
 
-    rows = [json.loads(line) for line in TEST_MANIFEST.open() if line.strip()]
-    print(f"\n[eval] transcribe {len(rows)} HELD-OUT clips (never trained):\n")
-    refs, hyps = [], []
-    for r in rows:
-        arr, sr = sf.read(r["audio"], dtype="float32")
-        if arr.ndim > 1:
-            arr = arr.mean(axis=1)
-        t = torch.from_numpy(arr)[None, None].to(device)
-        t = resample_to_mimi(t, sr).to(dtype)
-        with torch.no_grad():
-            codes = mimi_encode(mimi, t)
-            embeds = model.audio_in(codes).to(bb_dtype)
-            gen: list[int] = []
-            for _ in range(max_text_len):
-                out = model.backbone(inputs_embeds=embeds, output_hidden_states=True, return_dict=True)
-                nid = int(model.backbone.lm_head(out.hidden_states[-1][:, -1:, :]).argmax(-1).item())
-                if nid == eos:
-                    break
-                gen.append(nid)
-                embeds = torch.cat([embeds, emb(torch.tensor([[nid]], device=device)).to(bb_dtype)], dim=1)
-        hyp = tok.decode(gen, skip_special_tokens=True).strip()
-        refs.append(r["text"].lower())
-        hyps.append(hyp.lower())
-        print(f"  REF: {r['text'][:90]}")
-        print(f"  HYP: {hyp[:90]}\n")
-    try:
-        from jiwer import wer
-        print(f"[eval] WER on held-out: {wer(refs, hyps):.1%}  (lower = better; rough at this scale)")
-    except Exception:
-        pass
+    def transcribe(rows, label):
+        print(f"\n[eval] {label} — {len(rows)} clips:\n")
+        refs, hyps = [], []
+        for r in rows:
+            arr, sr = sf.read(r["audio"], dtype="float32")
+            if arr.ndim > 1:
+                arr = arr.mean(axis=1)
+            t = torch.from_numpy(arr)[None, None].to(device)
+            t = resample_to_mimi(t, sr).to(dtype)
+            with torch.no_grad():
+                codes = mimi_encode(mimi, t)
+                embeds = model.audio_in(codes).to(bb_dtype)
+                gen: list[int] = []
+                for _ in range(max_text_len):
+                    out = model.backbone(inputs_embeds=embeds, output_hidden_states=True, return_dict=True)
+                    nid = int(model.backbone.lm_head(out.hidden_states[-1][:, -1:, :]).argmax(-1).item())
+                    if nid == eos:
+                        break
+                    gen.append(nid)
+                    embeds = torch.cat([embeds, emb(torch.tensor([[nid]], device=device)).to(bb_dtype)], dim=1)
+            hyp = tok.decode(gen, skip_special_tokens=True).strip()
+            refs.append(r["text"].lower())
+            hyps.append(hyp.lower())
+            print(f"  REF: {r['text'][:90]}")
+            print(f"  HYP: {hyp[:90]}\n")
+        try:
+            from jiwer import wer
+            print(f"[eval] WER {label}: {wer(refs, hyps):.1%}")
+        except Exception:
+            pass
+
+    train_rows = [json.loads(l) for l in TRAIN_MANIFEST.open() if l.strip()][:6]
+    test_rows = [json.loads(l) for l in TEST_MANIFEST.open() if l.strip()]
+    transcribe(train_rows, "TRAIN clips (diagnostic: should fit)")
+    transcribe(test_rows, "HELD-OUT clips (never trained: real ASR)")
 
 
 def push_to_hub(repo: str | None) -> None:
@@ -168,9 +180,11 @@ if __name__ == "__main__":
     p.add_argument("--steps", type=int, default=4000)
     p.add_argument("--push-to-hub", action="store_true")
     p.add_argument("--hub-repo", default=None)
+    p.add_argument("--lora", action="store_true", help="LoRA on backbone (audio grounding fix)")
+    p.add_argument("--lr", default="3e-4")
     a = p.parse_args()
     build_data(a.clips, a.test_clips)
-    train(a.backbone, a.steps)
+    train(a.backbone, a.steps, lora=a.lora, lr=a.lr)
     evaluate_heldout()
     if a.push_to_hub:
         push_to_hub(a.hub_repo)

@@ -10,3 +10,7 @@ refs/
 .coverage
 .mypy_cache/
 node_modules/
+
+# secrets — never commit
+.env
+*.env

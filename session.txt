@@ -1,0 +1,2 @@
+claude --resume 55ba950d-ba87-445e-b2db-71da928c9c99  # Review and optimize ML training pipeline
+claude --resume 70c4a007-7eeb-4937-8369-fb1e3fc7ad86  # Set up Google Colab integration with VS Code

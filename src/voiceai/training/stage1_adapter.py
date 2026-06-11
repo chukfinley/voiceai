@@ -44,6 +44,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--batch-size", type=int, default=8)
     p.add_argument("--grad-accum", type=int, default=4)
     p.add_argument("--lr", type=float, default=3e-4)
+    p.add_argument("--min-lr-ratio", type=float, default=0.1,
+                   help="cosine decays to lr*ratio; 1.0 = constant after warmup")
     p.add_argument("--warmup", type=int, default=500)
     p.add_argument("--log-every", type=int, default=20)
     p.add_argument("--ckpt-every", type=int, default=2000)
@@ -58,6 +60,15 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--smoke", action="store_true", help="tiny run for testing")
     p.add_argument("--num-workers", type=int, default=0, help="DataLoader workers (only safe when manifest has pre-encoded `codes`)")
     p.add_argument("--resume-from", type=Path, default=None, help="Path to a previous ckpt dir; loads adapters.pt to warm-start.")
+    # LoRA on the backbone: a frozen LLM + teacher-forced text leans on its
+    # language prior instead of grounding on audio (ASR fails to generalise).
+    # LoRA lets the LLM learn to attend to the audio embeddings. Merged into the
+    # backbone weights before the final save, so from_pretrained loads normally.
+    p.add_argument("--lora-backbone", action="store_true", help="add trainable LoRA to the backbone so it learns to read audio (fixes ASR grounding)")
+    p.add_argument("--lora-rank", type=int, default=32)
+    p.add_argument("--lora-alpha", type=int, default=64)
+    p.add_argument("--lora-dropout", type=float, default=0.05)
+    p.add_argument("--lora-targets", default="q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj")
     return p
 
 
@@ -74,6 +85,7 @@ def main() -> None:
         args.ckpt_every = 10
 
     torch.manual_seed(args.seed)
+    torch.set_float32_matmul_precision("high")  # TF32 on Ampere+
 
     from ..model.mimi_utils import load_mimi
     from ..model.voiceai_lm import VoiceAIConfig, VoiceAILM
@@ -100,6 +112,22 @@ def main() -> None:
         if adapters.get("user_audio_out") and model.user_audio_out is not None:
             model.user_audio_out.load_state_dict(adapters["user_audio_out"])
         print(f"resumed adapters from {args.resume_from}")
+
+    if args.lora_backbone:
+        from peft import LoraConfig, get_peft_model
+
+        lora_cfg = LoraConfig(
+            r=args.lora_rank,
+            lora_alpha=args.lora_alpha,
+            lora_dropout=args.lora_dropout,
+            target_modules=args.lora_targets.split(","),
+            bias="none",
+            task_type="CAUSAL_LM",
+        )
+        model.backbone = get_peft_model(model.backbone, lora_cfg)
+        # peft adds LoRA layers in fp32; base is bf16 -> cast so matmuls match.
+        model.backbone = model.backbone.to(dtype)
+        print("LoRA on backbone enabled (audio grounding fix)")
 
     mimi = None if args.num_workers > 0 else load_mimi(device=device, dtype=dtype)
 
@@ -128,10 +156,13 @@ def main() -> None:
     )
 
     trainable = [p for p in model.parameters() if p.requires_grad]
-    optimizer = torch.optim.AdamW(trainable, lr=args.lr, betas=(0.9, 0.95), weight_decay=0.01)
-    scheduler = torch.optim.lr_scheduler.LambdaLR(
-        optimizer, lr_lambda=lambda step: min(1.0, step / max(1, args.warmup))
+    optimizer = torch.optim.AdamW(
+        trainable, lr=args.lr, betas=(0.9, 0.95), weight_decay=0.01, fused=device == "cuda"
     )
+    from .sched import build_scheduler
+
+    total_opt_steps = max(1, args.steps // args.grad_accum)
+    scheduler = build_scheduler(optimizer, args.warmup, total_opt_steps, args.min_lr_ratio)
 
     wandb_run = None
     if not args.wandb_disable and os.getenv("WANDB_API_KEY"):
@@ -259,6 +290,10 @@ def main() -> None:
             pbar.update(1)
 
     pbar.close()
+    if args.lora_backbone:
+        # fold LoRA into the base weights so save/from_pretrained are vanilla
+        model.backbone = model.backbone.merge_and_unload()
+        print("merged LoRA into backbone")
     model.save_pretrained(args.output / "final")
     if wandb_run is not None:
         wandb_run.finish()

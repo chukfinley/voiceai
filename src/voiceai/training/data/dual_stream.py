@@ -80,7 +80,8 @@ class DualStreamDataset(Dataset):
 
     def __init__(self, root: str | Path, pad_to_frames: int | None = None):
         self.root = Path(root)
-        self.files = sorted(self.root.glob("*.npz"))
+        # recursive: gen scripts write <root>/<scenario>/encoded/<id>.npz
+        self.files = sorted(self.root.rglob("*.npz"))
         if not self.files:
             raise FileNotFoundError(f"no .npz samples found in {self.root}")
         self.pad_to = pad_to_frames
@@ -115,18 +116,59 @@ def _pad_codes(codes: torch.Tensor, target_T: int, pad_id: int = 0) -> torch.Ten
 
 
 # ---------------------------------------------------------------------------
+# Acoustic delay (Moshi): Mimi codebook 0 is semantic (WavLM-distilled),
+# codebooks 1..K-1 are acoustic refinements. Delaying the acoustic books by a
+# frame or two lets the model commit to semantics first and condition the
+# acoustics on them — measurably better audio quality at the same compute.
+# ---------------------------------------------------------------------------
+ACOUSTIC_BOS = 2048  # MIMI_CARD; the +1 entry in adapter/head vocab
+
+
+def apply_acoustic_delay(codes: torch.Tensor, delay: int, bos_id: int = ACOUSTIC_BOS) -> torch.Tensor:
+    """codes: [K, T] → acoustic rows (1..K-1) shifted right by `delay` frames.
+
+    The first `delay` acoustic positions become `bos_id`; the last `delay`
+    acoustic frames are dropped. Inference must undo this when assembling
+    frames for Mimi decode (semantic at t pairs with acoustics emitted at
+    t+delay).
+    """
+    if delay <= 0:
+        return codes
+    out = codes.clone()
+    out[1:, delay:] = codes[1:, :-delay]
+    out[1:, :delay] = bos_id
+    return out
+
+
+def remove_acoustic_delay(codes: torch.Tensor, delay: int) -> torch.Tensor:
+    """Inverse of apply_acoustic_delay (drops the trailing semantic frames
+    whose acoustics never got emitted)."""
+    if delay <= 0:
+        return codes
+    out = codes[:, : codes.shape[1] - delay].clone()
+    out[1:] = codes[1:, delay:]
+    return out
+
+
+# ---------------------------------------------------------------------------
 # Collate
 # ---------------------------------------------------------------------------
-def dual_stream_collate(batch: list[dict]) -> dict[str, torch.Tensor]:
+def dual_stream_collate(batch: list[dict], acoustic_delay: int = 0) -> dict[str, torch.Tensor]:
     """Pad-collate. All tensors padded to max T in batch.
 
     We build:
-      - input_text_ids: [B, T_frames]      placeholder text per frame (mostly <a:silent>)
-      - user_codes:     [B, K, T_frames]   Mimi codes for user
-      - labels_asst_audio: [B, K, T_frames]  shifted asst codes (next-token)
-      - labels_user_audio: [B, K, T_frames]  shifted user codes
-      - labels_text:    [B, T_frames]       text monologue targets per frame
+      - user_codes:     [B, K, T_frames]   Mimi codes for user (model input)
+      - labels_asst_audio: [B, K, T_frames]  next-frame asst codes (-100 on pad/last)
+      - labels_user_audio: [B, K, T_frames]  next-frame user codes (-100 on pad/last)
+      - labels_text:    [B, T_frames]       next-frame text monologue targets
       - attention_mask: [B, T_frames]       1 where real, 0 where pad
+
+    Labels are shifted one frame left: hidden state at frame t supervises
+    frame t+1 of each stream (next-frame prediction). The final real frame
+    and all padding are masked with -100.
+
+    acoustic_delay > 0 applies the Moshi acoustic-delay pattern to inputs
+    AND labels (see apply_acoustic_delay).
     """
     Tmax = max(item["user_codes"].shape[1] for item in batch)
     K = batch[0]["user_codes"].shape[0]
@@ -135,24 +177,32 @@ def dual_stream_collate(batch: list[dict]) -> dict[str, torch.Tensor]:
     user_codes = torch.zeros(B, K, Tmax, dtype=torch.long)
     asst_codes = torch.zeros(B, K, Tmax, dtype=torch.long)
     attn = torch.zeros(B, Tmax, dtype=torch.long)
+    labels_user = torch.full((B, K, Tmax), -100, dtype=torch.long)
+    labels_asst = torch.full((B, K, Tmax), -100, dtype=torch.long)
     text_per_frame = torch.full((B, Tmax), -100, dtype=torch.long)
 
     for i, item in enumerate(batch):
         T = item["user_codes"].shape[1]
-        user_codes[i, :, :T] = item["user_codes"]
-        asst_codes[i, :, :T] = item["asst_codes"]
+        u = apply_acoustic_delay(item["user_codes"], acoustic_delay)
+        a = apply_acoustic_delay(item["asst_codes"], acoustic_delay)
+        user_codes[i, :, :T] = u
+        asst_codes[i, :, :T] = a
         attn[i, :T] = 1
+        if T > 1:
+            labels_user[i, :, : T - 1] = u[:, 1:]
+            labels_asst[i, :, : T - 1] = a[:, 1:]
         for tok_id, frame_idx in zip(item["text_ids"].tolist(), item["text_align"].tolist()):
-            if 0 <= frame_idx < Tmax:
-                text_per_frame[i, frame_idx] = tok_id
+            # token aligned to frame f is predicted from the hidden state at f-1
+            if 1 <= frame_idx < T:
+                text_per_frame[i, frame_idx - 1] = tok_id
 
     return {
         "user_codes": user_codes,
         "asst_codes": asst_codes,
         "attention_mask": attn,
         "labels_text": text_per_frame,
-        "labels_user_audio": user_codes.clone(),
-        "labels_asst_audio": asst_codes.clone(),
+        "labels_user_audio": labels_user,
+        "labels_asst_audio": labels_asst,
     }
 
 
@@ -162,7 +212,7 @@ def dual_stream_collate(batch: list[dict]) -> dict[str, torch.Tensor]:
 class StreamingDualStreamDataset(IterableDataset):
     def __init__(self, root: str | Path):
         self.root = Path(root)
-        self.files = sorted(self.root.glob("*.npz"))
+        self.files = sorted(self.root.rglob("*.npz"))
 
     def __iter__(self) -> Iterator[dict[str, torch.Tensor]]:
         for f in self.files:

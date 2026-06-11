@@ -38,6 +38,9 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--lora-dropout", type=float, default=0.05)
     p.add_argument("--lora-targets", default="q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj")
     p.add_argument("--pad-frames", type=int, default=512)
+    p.add_argument("--acoustic-delay", type=int, default=1,
+                   help="Moshi acoustic-delay pattern: shift Mimi codebooks 1..7 "
+                        "by N frames vs the semantic codebook (0 = off)")
     p.add_argument("--log-every", type=int, default=20)
     p.add_argument("--ckpt-every", type=int, default=2000)
     p.add_argument("--device", default="cuda")
@@ -90,7 +93,7 @@ def main() -> None:
         ds,
         batch_size=args.batch_size,
         shuffle=True,
-        collate_fn=dual_stream_collate,
+        collate_fn=lambda b: dual_stream_collate(b, acoustic_delay=args.acoustic_delay),
         num_workers=2,
         pin_memory=True,
         drop_last=True,
@@ -126,6 +129,7 @@ def main() -> None:
             out = model(
                 text_ids=placeholder_ids,
                 user_audio_codes=user_codes,
+                asst_audio_codes=asst_codes,  # model hears its own stream
                 attention_mask=attn,
                 labels_text=labels_text,
                 labels_user_audio=labels_user,

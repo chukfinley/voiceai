@@ -2,6 +2,18 @@
 
 End-to-end recipe to take this skeleton to a working voiceai model.
 
+**TL;DR — one command:**
+
+```bash
+uv run python scripts/train_recipe.py --recipe poc --dry-run   # show the plan
+uv run python scripts/train_recipe.py --recipe poc             # <€500 PoC, 1×4090
+uv run python scripts/train_recipe.py --recipe full            # 8B, multilingual, H100-node
+```
+
+`poc` = Qwen3-1.7B, ~300 h English, all stages + bench, ~8-10 days on one
+RTX 4090 (~€150-250 rented). `full` = Qwen3-8B, 10 languages, the real thing.
+Every phase is resumable via `--phase`. Details per stage below.
+
 ## 0. Smoke test (free, 5 min, CPU or any GPU)
 
 Validates the whole stack with a tiny stand-in model — no real weights downloaded.
@@ -41,6 +53,19 @@ uv run python scripts/download_data.py --out data/stage1 --librispeech --commonv
 
 Pulls ~200h of English speech (LibriSpeech + Common Voice) and builds a manifest.
 Total disk: ~20-30 GB.
+
+## 2b. Download HF datasets (ASR + emotion + sounds + instruct)
+
+```bash
+uv run python scripts/download_hf_datasets.py --out data/hf \
+    --datasets librispeech voxpopuli voice_assistant crema_d meld vocalsound esc50 \
+    --max-hours 100 --combine-adapter-manifest
+```
+
+Emotion datasets bake `<emo:x>` tags into the text targets; sound datasets use
+`[sound: x]` — both train through the normal Stage 1 path with zero pipeline
+changes. (The former Whisper-bridge path was removed — it discarded prosody
+and had no audio output. The Mimi pipeline below is the only path.)
 
 ## 3. Stage 1 — Audio Adapter Pretrain
 

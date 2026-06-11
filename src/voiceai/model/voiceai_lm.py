@@ -26,9 +26,20 @@ import torch
 import torch.nn as nn
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from .audio_adapter import AudioAdapter, MimiOutputHeads
+from .audio_adapter import AudioAdapter, MimiDepthTransformer, MimiOutputHeads
 from .mimi_utils import MIMI_CARD, MIMI_NUM_CODEBOOKS
 
+
+# Emotion vocabulary for the inner monologue. Used in BOTH directions:
+#   recognized user emotion:  "<u:emo> angry </u:emo>" style tags in the text stream
+#   intended assistant emotion: "<a:emo> warm </a:emo>" before speaking
+# Discrete tags keep it trainable from labeled data (MELD/CREMA-D/ESD) without
+# a separate conditioning pathway; the audio heads learn the acoustic side.
+EMOTIONS = [
+    "neutral", "happy", "sad", "angry", "surprised", "fearful",
+    "disgusted", "stressed", "calm", "excited", "whispering", "shouting",
+    "laughing", "crying", "sarcastic",
+]
 
 SPECIAL_TOKENS = [
     "<silent>",
@@ -53,7 +64,18 @@ SPECIAL_TOKENS = [
     "</u_stream>",
     "<a_stream>",
     "</a_stream>",
-]
+    "<u:emo>",
+    "</u:emo>",
+    "<a:emo>",
+    "</a:emo>",
+    "<speaker>",
+    "</speaker>",
+    # mode switching in the monologue, e.g. "<task> interpret de->es </task>"
+    # (live interpreting inverts barge-in semantics: user talking = input,
+    # not interruption)
+    "<task>",
+    "</task>",
+] + [f"<emo:{e}>" for e in EMOTIONS]
 
 
 @dataclass
@@ -70,6 +92,14 @@ class VoiceAIConfig:
     freeze_backbone: bool = False
     dtype: str = "bfloat16"
     load_in_4bit: bool = False
+    # Depth transformer (Moshi-style) instead of independent linear heads.
+    # Old checkpoints (trained with linear heads) load with this set to False.
+    use_depth_transformer: bool = True
+    depth_dim: int = 512
+    depth_layers: int = 4
+    # Feed the assistant's own audio stream back as input (Moshi-style: the
+    # model hears itself). Separate embedding tables from the user stream.
+    asst_audio_input: bool = True
 
 
 class VoiceAILM(nn.Module):
@@ -105,19 +135,32 @@ class VoiceAILM(nn.Module):
             num_codebooks=cfg.num_codebooks,
             codebook_size=cfg.codebook_size,
         )
-        self.asst_audio_out = MimiOutputHeads(
-            d_model=d_model,
-            num_codebooks=cfg.num_codebooks,
-            codebook_size=cfg.codebook_size,
-        )
-        if cfg.train_user_audio:
-            self.user_audio_out = MimiOutputHeads(
+        self.audio_in_asst = (
+            AudioAdapter(
                 d_model=d_model,
                 num_codebooks=cfg.num_codebooks,
                 codebook_size=cfg.codebook_size,
             )
-        else:
-            self.user_audio_out = None
+            if cfg.asst_audio_input
+            else None
+        )
+        def _make_audio_head():
+            if cfg.use_depth_transformer:
+                return MimiDepthTransformer(
+                    d_model=d_model,
+                    num_codebooks=cfg.num_codebooks,
+                    codebook_size=cfg.codebook_size,
+                    depth_dim=cfg.depth_dim,
+                    num_layers=cfg.depth_layers,
+                )
+            return MimiOutputHeads(
+                d_model=d_model,
+                num_codebooks=cfg.num_codebooks,
+                codebook_size=cfg.codebook_size,
+            )
+
+        self.asst_audio_out = _make_audio_head()
+        self.user_audio_out = _make_audio_head() if cfg.train_user_audio else None
 
         if cfg.freeze_backbone:
             for p in self.backbone.parameters():
@@ -130,6 +173,7 @@ class VoiceAILM(nn.Module):
         self,
         text_ids: torch.Tensor | None = None,
         user_audio_codes: torch.Tensor | None = None,
+        asst_audio_codes: torch.Tensor | None = None,
         text_audio_mask: torch.Tensor | None = None,
         attention_mask: torch.Tensor | None = None,
         labels_text: torch.Tensor | None = None,
@@ -140,6 +184,9 @@ class VoiceAILM(nn.Module):
 
         text_ids: [B, T] token IDs at frame positions (mostly silent placeholders).
         user_audio_codes: [B, K, T] Mimi codes for the user audio stream.
+        asst_audio_codes: [B, K, T] Mimi codes of the assistant's OWN stream
+                          (what it already said) — summed into the input so the
+                          model hears itself. Requires cfg.asst_audio_input.
         text_audio_mask: [B, T] bool — True where the position is an audio token
                          (replace text-embed with audio-adapter embed).
         labels_*: matching tensors for loss; ignore_index = -100.
@@ -168,6 +215,9 @@ class VoiceAILM(nn.Module):
                 mask = text_audio_mask.unsqueeze(-1).to(embeds.dtype)
                 embeds = embeds * (1 - mask) + audio_embeds * mask
 
+        if asst_audio_codes is not None and self.audio_in_asst is not None:
+            embeds = embeds + self.audio_in_asst(asst_audio_codes).to(dtype=bb_dtype)
+
         embeds = embeds.to(dtype=bb_dtype)
         outputs = self.backbone(
             inputs_embeds=embeds,
@@ -181,11 +231,12 @@ class VoiceAILM(nn.Module):
 
         text_logits = self.backbone.lm_head(hidden)
         result["text_logits"] = text_logits
-        asst_audio_logits = self.asst_audio_out(hidden)
-        result["asst_audio_logits"] = asst_audio_logits
-        if self.user_audio_out is not None:
-            user_audio_logits = self.user_audio_out(hidden)
-            result["user_audio_logits"] = user_audio_logits
+        # Depth transformer is autoregressive over codebooks: full logits only
+        # exist under teacher forcing (inside .loss) or via .sample() per frame.
+        if not self.cfg.use_depth_transformer:
+            result["asst_audio_logits"] = self.asst_audio_out(hidden)
+            if self.user_audio_out is not None:
+                result["user_audio_logits"] = self.user_audio_out(hidden)
 
         total_loss = None
         if labels_text is not None and self.cfg.train_text:
@@ -223,6 +274,9 @@ class VoiceAILM(nn.Module):
         torch.save(
             {
                 "audio_in": self.audio_in.state_dict(),
+                "audio_in_asst": (
+                    self.audio_in_asst.state_dict() if self.audio_in_asst else None
+                ),
                 "asst_audio_out": self.asst_audio_out.state_dict(),
                 "user_audio_out": (
                     self.user_audio_out.state_dict() if self.user_audio_out else None
@@ -239,6 +293,8 @@ class VoiceAILM(nn.Module):
     def from_pretrained(cls, path: str | Path) -> "VoiceAILM":
         path = Path(path)
         adapters = torch.load(path / "adapters.pt", map_location="cpu")
+        # ckpts from before the depth transformer used independent linear heads
+        adapters["cfg"].setdefault("use_depth_transformer", False)
         cfg = VoiceAIConfig(**adapters["cfg"])
         backbone_dir = path / "backbone"
         if backbone_dir.exists():
@@ -250,6 +306,13 @@ class VoiceAILM(nn.Module):
         model.asst_audio_out.load_state_dict(adapters["asst_audio_out"])
         if adapters.get("user_audio_out") and model.user_audio_out:
             model.user_audio_out.load_state_dict(adapters["user_audio_out"])
+        if model.audio_in_asst is not None:
+            if adapters.get("audio_in_asst"):
+                model.audio_in_asst.load_state_dict(adapters["audio_in_asst"])
+            else:
+                # warm-start the new asst-stream adapter from the trained
+                # user-stream adapter (stage 1 ckpts predate it)
+                model.audio_in_asst.load_state_dict(adapters["audio_in"])
         return model
 
     # ------------------------------------------------------------------

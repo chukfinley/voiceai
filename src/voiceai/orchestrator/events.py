@@ -20,6 +20,8 @@ class EvType(str, Enum):
     VISUAL_FRAME = "visual_frame"              # raw camera frame
     VISUAL_EVENT = "visual_event"              # watcher classification
 
+    SPEAKER_ID = "speaker_id"                  # identified speaker {name, score}
+
     TICK = "tick"                              # periodic time marker
 
     LLM_TEXT_DELTA = "llm_text_delta"          # streaming token from FG llm
