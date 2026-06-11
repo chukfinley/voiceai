@@ -164,6 +164,10 @@ def main() -> None:
             pbar.update(1)
 
     pbar.close()
+    # fold LoRA into the base weights so from_pretrained loads a vanilla backbone
+    if hasattr(model.backbone, "merge_and_unload"):
+        model.backbone = model.backbone.merge_and_unload()
+        print("merged LoRA into backbone")
     model.save_pretrained(args.output / "final")
     if wandb_run is not None:
         wandb_run.finish()
