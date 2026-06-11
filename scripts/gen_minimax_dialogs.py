@@ -105,11 +105,17 @@ def parse_dialogs(text: str) -> list:
         return []
     out = []
     for d in data if isinstance(data, list) else []:
-        turns = [
-            {"speaker": "asst" if str(t.get("speaker", "")).lower().startswith("a") else "user",
-             "text": str(t.get("text", "")).strip()}
-            for t in d if str(t.get("text", "")).strip()
-        ]
+        if not isinstance(d, list):
+            continue
+        turns = []
+        for t in d:
+            if not isinstance(t, dict):
+                continue
+            txt = str(t.get("text", "")).strip()
+            if not txt:
+                continue
+            spk = "asst" if str(t.get("speaker", "")).lower().startswith("a") else "user"
+            turns.append({"speaker": spk, "text": txt})
         if 2 <= len(turns) <= 6:
             out.append(turns)
     return out
