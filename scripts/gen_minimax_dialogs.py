@@ -76,7 +76,8 @@ def call_llm(prompt: str, base_url: str, key: str, model: str) -> str:
             "model": model,
             "messages": [{"role": "user", "content": prompt}],
             "temperature": 1.0,
-            "max_tokens": 6000,  # room for M3 reasoning + a batch of dialogs
+            "max_tokens": 4000,
+            "thinking": {"type": "disabled"},  # M3: skip reasoning -> fast + cheap
         },
         timeout=120,
     )
