@@ -62,10 +62,38 @@ def build_data(n_train: int, n_test: int) -> None:
     print(f"[data] {len(train)} train + {len(test)} held-out test clips")
 
 
-def train(whisper_id: str, llm_id: str, steps: int) -> None:
+def build_heldout(n_test: int, split: str = "test") -> None:
+    """Stream a small held-out set (default LibriSpeech test.clean) for eval."""
+    if TEST_MANIFEST.exists() and sum(1 for _ in TEST_MANIFEST.open()) >= n_test:
+        print("[data] reuse held-out test manifest")
+        return
+    import soundfile as sf
+    from datasets import Audio, load_dataset
+
+    print(f"[data] streaming {n_test} held-out clips from {split}…")
+    ds = load_dataset("openslr/librispeech_asr", "clean", split=split, streaming=True)
+    ds = ds.cast_column("audio", Audio(decode=False))
+    WAVS.mkdir(parents=True, exist_ok=True)
+    rows = []
+    for i, ex in enumerate(ds):
+        if len(rows) >= n_test:
+            break
+        au = ex["audio"]
+        arr, sr = sf.read(io.BytesIO(au["bytes"])) if au.get("bytes") else sf.read(au["path"])
+        txt = (ex.get("text") or "").strip()
+        if not txt:
+            continue
+        wav = WAVS / f"test_{i:05d}.wav"
+        sf.write(str(wav), arr, sr)
+        rows.append({"audio": str(wav), "text": txt})
+    TEST_MANIFEST.write_text("".join(json.dumps(r) + "\n" for r in rows))
+    print(f"[data] {len(rows)} held-out test clips")
+
+
+def train(whisper_id: str, llm_id: str, steps: int, stream: bool = False,
+          hf_split: str = "train.360", max_clips: int = 0, ckpt_every: int = 100000) -> None:
     cmd = [
         sys.executable, "-m", "voiceai.training.stage1_whisper",
-        "--manifest", str(TRAIN_MANIFEST),
         "--output", str(OUT),
         "--whisper-id", whisper_id,
         "--llm-id", llm_id,
@@ -76,11 +104,16 @@ def train(whisper_id: str, llm_id: str, steps: int) -> None:
         "--lr", "1e-4",
         "--warmup", "200",
         "--log-every", "50",
-        "--ckpt-every", "100000",
+        "--ckpt-every", str(ckpt_every),
         "--device", "cuda",
         "--dtype", "bfloat16",
         "--wandb-disable",
     ]
+    if stream:
+        cmd += ["--hf-dataset", "openslr/librispeech_asr", "--hf-config", "clean",
+                "--hf-split", hf_split, "--max-clips", str(max_clips), "--num-workers", "6"]
+    else:
+        cmd += ["--manifest", str(TRAIN_MANIFEST)]
     print("[train] Whisper-bridge ASR:\n  " + " ".join(cmd))
     env = {**os.environ, "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True"}
     if subprocess.run(cmd, env=env).returncode != 0:
@@ -123,9 +156,10 @@ def evaluate() -> None:
         except Exception:
             pass
 
-    train_rows = [json.loads(l) for l in TRAIN_MANIFEST.open() if l.strip()][:6]
+    if TRAIN_MANIFEST.exists():
+        train_rows = [json.loads(l) for l in TRAIN_MANIFEST.open() if l.strip()][:6]
+        transcribe(train_rows, "TRAIN clips (should fit)")
     test_rows = [json.loads(l) for l in TEST_MANIFEST.open() if l.strip()]
-    transcribe(train_rows, "TRAIN clips (should fit)")
     transcribe(test_rows, "HELD-OUT clips (real ASR)")
 
 
@@ -155,9 +189,19 @@ if __name__ == "__main__":
     p.add_argument("--steps", type=int, default=6000)
     p.add_argument("--push-to-hub", action="store_true")
     p.add_argument("--hub-repo", default=None)
+    # scaling: stream train data straight from HF (no pre-download) for big runs
+    p.add_argument("--stream", action="store_true", help="stream train from LibriSpeech HF (for 100h+ runs)")
+    p.add_argument("--hf-split", default="train.360", help="LibriSpeech train split to stream (train.100/train.360)")
+    p.add_argument("--max-clips", type=int, default=0, help="cap streamed clips/epoch (0=all)")
+    p.add_argument("--ckpt-every", type=int, default=100000)
     a = p.parse_args()
-    build_data(a.clips, a.test_clips)
-    train(a.whisper_id, a.llm_id, a.steps)
+    if a.stream:
+        build_heldout(a.test_clips)
+        train(a.whisper_id, a.llm_id, a.steps, stream=True, hf_split=a.hf_split,
+              max_clips=a.max_clips, ckpt_every=a.ckpt_every)
+    else:
+        build_data(a.clips, a.test_clips)
+        train(a.whisper_id, a.llm_id, a.steps, ckpt_every=a.ckpt_every)
     evaluate()
     if a.push_to_hub:
         push_to_hub(a.hub_repo)

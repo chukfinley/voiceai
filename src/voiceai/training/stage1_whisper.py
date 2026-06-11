@@ -21,8 +21,13 @@ from tqdm.auto import tqdm
 
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser()
-    p.add_argument("--manifest", required=True, type=Path)
+    p.add_argument("--manifest", type=Path, default=None, help="jsonl manifest (or use --hf-dataset to stream)")
     p.add_argument("--output", required=True, type=Path)
+    p.add_argument("--hf-dataset", default=None, help="stream from this HF dataset instead of a manifest, e.g. openslr/librispeech_asr")
+    p.add_argument("--hf-config", default="clean")
+    p.add_argument("--hf-split", default="train.360")
+    p.add_argument("--max-clips", type=int, default=0, help="cap streamed clips per epoch (0=all)")
+    p.add_argument("--num-workers", type=int, default=4)
     p.add_argument("--whisper-id", default="openai/whisper-small")
     p.add_argument("--llm-id", default="Qwen/Qwen3-1.7B")
     p.add_argument("--steps", type=int, default=5000)
@@ -81,6 +86,67 @@ class WhisperASRDataset(IterableDataset):
             }
 
 
+class WhisperHFStreamDataset(IterableDataset):
+    """Stream audio+text straight from a HuggingFace ASR dataset — no pre-download.
+
+    Decodes audio bytes with soundfile (avoids torchcodec), extracts mel on the
+    fly. Worker-sharded so num_workers>0 doesn't duplicate samples. Re-streams
+    each epoch (training loops `while step < steps`).
+    """
+
+    def __init__(self, hf_dataset, hf_config, hf_split, tokenizer, feat_ext,
+                 max_text_len=120, max_clips=0, seed=0):
+        self.hf_dataset = hf_dataset
+        self.hf_config = hf_config
+        self.hf_split = hf_split
+        self.tokenizer = tokenizer
+        self.feat_ext = feat_ext
+        self.max_text_len = max_text_len
+        self.max_clips = max_clips  # 0 = unlimited
+        self.seed = seed
+
+    def __iter__(self):
+        import io as _io
+
+        from datasets import Audio, load_dataset
+
+        info = torch.utils.data.get_worker_info()
+        wid = info.id if info else 0
+        nw = info.num_workers if info else 1
+
+        ds = load_dataset(self.hf_dataset, self.hf_config, split=self.hf_split, streaming=True)
+        ds = ds.cast_column("audio", Audio(decode=False))
+        ds = ds.shuffle(seed=self.seed, buffer_size=2000)
+        n = 0
+        for i, ex in enumerate(ds):
+            if i % nw != wid:          # shard across workers
+                continue
+            if self.max_clips and n >= self.max_clips:
+                break
+            au = ex["audio"]
+            try:
+                if au.get("bytes"):
+                    audio, sr = sf.read(_io.BytesIO(au["bytes"]), dtype="float32")
+                else:
+                    audio, sr = sf.read(au["path"], dtype="float32")
+            except Exception:
+                continue
+            if audio.ndim > 1:
+                audio = audio.mean(axis=1)
+            if sr != 16000:
+                import librosa
+                audio = librosa.resample(audio, orig_sr=sr, target_sr=16000)
+            text = (ex.get("text") or "").strip()
+            if not text:
+                continue
+            feats = self.feat_ext(audio, sampling_rate=16000, return_tensors="pt")
+            tids = self.tokenizer.encode(text, add_special_tokens=False)[: self.max_text_len]
+            if self.tokenizer.eos_token_id is not None:
+                tids = tids + [self.tokenizer.eos_token_id]
+            n += 1
+            yield {"features": feats.input_features[0], "text_ids": np.array(tids, dtype=np.int64)}
+
+
 def collate(batch, pad_id: int):
     B = len(batch)
     Tmax_t = max(len(s["text_ids"]) for s in batch)
@@ -113,18 +179,23 @@ def main() -> None:
     print(f"trainable params: {model.trainable_param_count() / 1e6:.2f}M")
 
     pad_id = model.tokenizer.pad_token_id
-    ds = WhisperASRDataset(
-        manifest=str(args.manifest),
-        tokenizer=model.tokenizer,
-        feat_ext=model.feature_extractor,
-        max_text_len=args.max_text_len,
-        seed=args.seed,
-    )
+    if args.hf_dataset:
+        ds = WhisperHFStreamDataset(
+            hf_dataset=args.hf_dataset, hf_config=args.hf_config, hf_split=args.hf_split,
+            tokenizer=model.tokenizer, feat_ext=model.feature_extractor,
+            max_text_len=args.max_text_len, max_clips=args.max_clips, seed=args.seed,
+        )
+        print(f"streaming {args.hf_dataset}:{args.hf_config}:{args.hf_split}")
+    else:
+        ds = WhisperASRDataset(
+            manifest=str(args.manifest), tokenizer=model.tokenizer,
+            feat_ext=model.feature_extractor, max_text_len=args.max_text_len, seed=args.seed,
+        )
     loader = DataLoader(
         ds,
         batch_size=args.batch_size,
         collate_fn=lambda b: collate(b, pad_id=pad_id),
-        num_workers=2,
+        num_workers=args.num_workers,
         pin_memory=True,
     )
 
