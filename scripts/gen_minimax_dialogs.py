@@ -76,7 +76,7 @@ def call_llm(prompt: str, base_url: str, key: str, model: str) -> str:
             "model": model,
             "messages": [{"role": "user", "content": prompt}],
             "temperature": 1.0,
-            "max_tokens": 2000,
+            "max_tokens": 6000,  # room for M3 reasoning + a batch of dialogs
         },
         timeout=120,
     )
@@ -85,9 +85,19 @@ def call_llm(prompt: str, base_url: str, key: str, model: str) -> str:
 
 
 def parse_dialogs(text: str) -> list:
-    text = text.strip()
-    if text.startswith("```"):
-        text = text.split("```", 2)[1].removeprefix("json").strip()
+    import re
+
+    # M3 is a reasoning model: strip its <think>...</think> block
+    text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
+    # pull the first JSON array out of whatever's left
+    if "```" in text:
+        m = re.search(r"```(?:json)?\s*(.*?)```", text, flags=re.DOTALL)
+        if m:
+            text = m.group(1).strip()
+    if not text.startswith("["):
+        m = re.search(r"\[.*\]", text, flags=re.DOTALL)
+        if m:
+            text = m.group(0)
     try:
         data = json.loads(text)
     except Exception:
