@@ -126,3 +126,18 @@ Branch: lora-grounding-fix.
   More STEPS overfit train; to lower held-out WER add more DATA (clips), not steps.
 - final model: HF chukfinley/voiceai-asr-whisper + local runs/asr_whisper_final/bridge.pt (9.5MB)
 - test it: `uv run --extra train python scripts/transcribe.py <file.wav>`
+- 02:45 UTC — duplex stage2 v2 (NaN-fixed): step 4761/6000, loss 11->1.34, ETA ~6min. .env SSH corrected to duplex pod.
+
+## ✅ Full-duplex demo WORKS (2026-06-12)
+
+End-to-end loop: Minimax M3 dialogs (combinatorial, reasoning off) -> kokoro TTS
+-> Mimi encode -> dual-stream -> Stage 2 (audio<->audio) -> StreamingEngine demo.
+- NaN bug fixed (text loss skipped when no valid targets / empty text_ids).
+- stage2 v2: 1500 dialogs, 6000 steps, loss 11 -> 1.3 (real, no NaN).
+- demo output assistant_response2.wav: 12.3s, rms 0.034, 31% loud frames = REAL
+  audio (not silence/noise). Crappy/babble quality (tiny data) but the loop trains
+  and produces speech-like audio. Proof: the full Mimi full-duplex pipeline works.
+- model: HF chukfinley/voiceai-duplex-demo. Branch lora-grounding-fix.
+- pod killed after run.
+- 03:38 UTC — webui: 4090 pods (image runpod/pytorch:0.7.0-cu1241-torch260) stuck w/o runtime twice (lrlat4x185caml, zd69xhlvzb82z1, EUR-IS-2). Killed both. Redeployed on RTX 3090 (qg4gjhev7s3ddj) — 3090 boots fine with this image. URL: https://qg4gjhev7s3ddj-7860.proxy.runpod.net
+- 03:56 UTC — webui LIVE on 3090 (qg4gjhev7s3ddj) https://qg4gjhev7s3ddj-7860.proxy.runpod.net — fix: serve via uvicorn/mount_gradio_app (gradio launch() localhost self-check fails in container -> 502). User tested: audio in -> audio+text out works mechanically; inner-monologue is gibberish (expected, tiny data). PROJECT PAUSED pending budget for real training.

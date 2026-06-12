@@ -1,5 +1,11 @@
 # Training: Recherche-Stand (Juni 2026) + Ideen fürs „richtige" Training
 
+> **WICHTIG — vor dem Lesen:** `PROJECT_STATE.md` §0 ist die aktuelle Wahrheit.
+> Empirie (2026-06-11): Mimi-only groundet NICHT für ASR (WER 176%),
+> Whisper-Bridge groundet (WER 10.5%). Das „Whisper raus, Mimi-only"-Fazit
+> weiter unten ist dadurch überholt — der Zielzustand ist **Hybrid-Input**
+> (Whisper-Features + Mimi-Codes parallel), nicht entweder/oder.
+
 Quelle: Online-Recherche zu Speech-LLM-Bridges (Ultravox, Voxtral, SLAM-ASR,
 Canary-Qwen, Qwen3-Omni, Granite-Speech) + Training-Effizienz 2025/26.
 Was davon schon im Code ist, steht unten unter „Umgesetzt".

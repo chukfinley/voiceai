@@ -20,7 +20,9 @@ Total trainable ≈ 920M ("close to 1B"). English-only PoC, single voice.
 
 Production code skeleton complete. Ready for first training runs.
 
+- **`PROJECT_STATE.md` — single source of truth (read this first)**
 - `PLAN.md` — strategy
+- `TRAINING_IDEAS.md` — research + ideas for the real training run
 - `OSS_LANDSCAPE.md` — comprehensive 2026 OSS inventory
 - `COMPUTE.md` — cheap/free training options
 - `HOW_TO_TRAIN.md` — concrete commands, Stage-by-Stage
