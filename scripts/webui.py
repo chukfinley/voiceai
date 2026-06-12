@@ -90,7 +90,9 @@ def main() -> None:
         description="Nimm was auf oder lad ein Wav hoch. Das Modell antwortet mit Audio. "
                     "Qualität ist grob (winziges Training) — es geht ums Testen dass es läuft.",
     )
-    demo.launch(share=a.share, server_name="0.0.0.0", server_port=a.port)
+    # show_api=False avoids a gradio 4.x json-schema bug (bool not iterable) that
+    # otherwise crashes share-tunnel setup before the public URL is printed.
+    demo.launch(share=a.share, server_name="0.0.0.0", server_port=a.port, show_api=False)
 
 
 if __name__ == "__main__":
