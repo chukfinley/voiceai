@@ -26,7 +26,8 @@ def main() -> None:
     p.add_argument("--hub-repo", default="chukfinley/voiceai-duplex-demo")
     p.add_argument("--respond-frames", type=int, default=125, help="silent frames to let it answer (~10s)")
     p.add_argument("--port", type=int, default=7860)
-    p.add_argument("--share", action="store_true", default=True)
+    p.add_argument("--share", action="store_true", default=False,
+                   help="gradio.live tunnel (buggy on gradio 4.x); prefer RunPod http-proxy instead")
     a = p.parse_args()
 
     import gradio as gr
