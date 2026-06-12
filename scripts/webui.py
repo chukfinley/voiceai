@@ -34,6 +34,32 @@ def main() -> None:
     import numpy as np
     import torch
 
+    # gradio 4.x crashes on boolean JSON schemas (TypeError: argument of type
+    # 'bool' is not iterable) during its self-check -> 502 behind a proxy.
+    # Patch gradio_client to treat bool schemas as "Any".
+    try:
+        import gradio_client.utils as _gcu
+
+        _o_json = _gcu._json_schema_to_python_type
+
+        def _safe_json(schema, defs=None):
+            if isinstance(schema, bool):
+                return "Any"
+            return _o_json(schema, defs)
+
+        _gcu._json_schema_to_python_type = _safe_json
+
+        _o_get = _gcu.get_type
+
+        def _safe_get(schema):
+            if isinstance(schema, bool):
+                return "Any"
+            return _o_get(schema)
+
+        _gcu.get_type = _safe_get
+    except Exception:
+        pass
+
     from voiceai.inference.streaming import StreamingEngine
     from voiceai.model.mimi_utils import load_mimi, mimi_encode, resample_to_mimi
     from voiceai.model.voiceai_lm import VoiceAILM
