@@ -239,7 +239,9 @@ class VoiceAILM(nn.Module):
                 result["user_audio_logits"] = self.user_audio_out(hidden)
 
         total_loss = None
-        if labels_text is not None and self.cfg.train_text:
+        # only compute text loss if there are valid (non-ignored) text targets;
+        # audio-only dual-stream samples have empty text -> all -100 -> NaN otherwise.
+        if labels_text is not None and self.cfg.train_text and (labels_text != -100).any():
             text_loss = nn.functional.cross_entropy(
                 text_logits.reshape(-1, text_logits.size(-1)).float(),
                 labels_text.reshape(-1),
