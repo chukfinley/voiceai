@@ -117,9 +117,20 @@ def main() -> None:
         description="Nimm was auf oder lad ein Wav hoch. Das Modell antwortet mit Audio. "
                     "Qualität ist grob (winziges Training) — es geht ums Testen dass es läuft.",
     )
-    # show_api=False avoids a gradio 4.x json-schema bug (bool not iterable) that
-    # otherwise crashes share-tunnel setup before the public URL is printed.
-    demo.launch(share=a.share, server_name="0.0.0.0", server_port=a.port, show_api=False)
+    if a.share:
+        # show_api=False avoids a gradio 4.x json-schema bug (bool not iterable) that
+        # otherwise crashes share-tunnel setup before the public URL is printed.
+        demo.launch(share=True, server_name="0.0.0.0", server_port=a.port, show_api=False)
+    else:
+        # Serve via uvicorn directly: demo.launch()'s localhost self-check fails in
+        # the RunPod container and aborts startup; mounting skips that check.
+        import uvicorn
+        from fastapi import FastAPI
+
+        demo.queue()
+        app = gr.mount_gradio_app(FastAPI(), demo, path="/")
+        print(f"[webui] serving on 0.0.0.0:{a.port} (uvicorn)")
+        uvicorn.run(app, host="0.0.0.0", port=a.port)
 
 
 if __name__ == "__main__":
