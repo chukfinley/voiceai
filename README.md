@@ -43,8 +43,10 @@ that cuts playback to fake an interrupt). **We want the first kind.**
 | Model | Backbone / codec | License | Train code? | Notes |
 |---|---|---|---|---|
 | **Moshi** (Kyutai) | Helium-7B + Mimi, dual-stream RQ-Transformer | CC-BY-4.0 | ✅ `moshi-finetune` | The reference. ~40GB at default finetune config; 24GB unverified. |
-| **PersonaPlex** (NVIDIA) | Moshi-based + voice/role control | code MIT / weights NVIDIA OML | ⚠️ inference+eval only | Barge-in formally evaluated (FullDuplexBench). Cloned in `refs/personaplex/`. |
+| **PersonaPlex** (NVIDIA) | Moshi-based + voice/role control | code MIT / weights NVIDIA OML | ⚠️ inference+eval only | Barge-in formally evaluated (FullDuplexBench). [github.com/NVIDIA/personaplex](https://github.com/NVIDIA/personaplex). Cloned in `refs/personaplex/`. |
 | **Hertz-dev** (Standard Intelligence) | 8.5B + Hertz-Codec @8Hz | Apache-2.0 | ❌ inference only | Real joint dual-stream, 120ms on a 4090. Train-it-yourself. |
+| **MichiAI** (Ketsui Labs) | SmolLM-360M + continuous embeds + Rectified-Flow-Matching → causal HiFi-GAN | Apache-2.0 | ⚠️ code incomplete | 530M, ~75ms, listen+speak heads, ~5k h. **Codec-free** (continuous, no RVQ) — same family as TM/SALMONN, opposite of our discrete-Mimi path. [github.com/KetsuiLabs/MichiAI](https://github.com/KetsuiLabs/MichiAI). Training code not yet pushed (repo skeleton only). |
+| **Seed-Duplex** (ByteDance Seed) | undisclosed | research page | ❌ no code | [seed.bytedance.com/en/seeduplex](https://seed.bytedance.com/en/seeduplex). Details not public yet. |
 | **BayLing-Duplex** | single AR LLM over GLM-4-Voice | CC-BY-NC-ND 4.0 | ❌ inference only | 100% interrupt success, no external VAD. No-derivatives license = hard block. |
 | **dGSLM** (Meta/fairseq) | dual-tower, HuBERT units | MIT | ✅ fairseq | Unit-based, telephone-quality, old; proves the dual-tower idea. |
 | **SyncLLM** | frame-sync interleaved streams | — | ❌ no repo found | Paper only (arXiv 2409.15594). |
@@ -64,6 +66,7 @@ full-duplex.** Listed here so we never mistake one for the target.
 | **Mini-Omni / Mini-Omni2** | Qwen2-0.5B speech chat | MIT | Interruptible *turn-taking* via `irq` token — not joint co-modeling. |
 | **GLM-4-Voice** | end-to-end zh/en speech LLM | Apache code / restricted weights | Half-duplex + external VAD. |
 | **LLaMA-Omni / LLaMA-Omni2** | streaming speech chat | non-commercial weights | Streaming TTS + VAD, turn-based. (Stage-2 pattern — separate speech head on **frozen** LLM hidden states — is worth stealing for our frozen-backbone audio-out.) |
+| **DuplexCascade** (Interspeech 2026) | VAD-free **cascade** ASR→LLM→TTS, chunk-wise "micro-turns" + control tokens | open-source (paper) | Cascade, not joint co-modeling — the exact ASR→LLM→TTS pipeline this repo rejects. VAD-free ≠ full-duplex. Paper [arXiv:2603.09180](https://arxiv.org/abs/2603.09180). |
 | **Step-Audio / Step-Audio 2 mini** | speech chat + tool calls | mixed / Apache (2-mini) | Turn-based, external VAD. |
 | **VITA-Audio** | Qwen2.5-7B speech | non-commercial | Turn-based MCTP. |
 | **Qwen2.5-Omni / Qwen3-Omni** | omni (audio+vision+text) | Apache-2.0 | Half-duplex Thinker-Talker. |
