@@ -38,6 +38,45 @@ speaking, backchannel ("mhm"), or interrupt **mid-user-utterance** — no extern
 turn-taking gate. *Turn-based* = you finish → it replies (optionally with a bolted-on VAD
 that cuts playback to fake an interrupt). **We want the first kind.**
 
+### Three different things get called "full-duplex" — don't be fooled
+
+The word is overloaded. Almost everyone who claims "full-duplex" means level 1 or 2,
+which are easy. We are after level 3, which is a genuine research problem.
+
+| Level | What it means | Who claims it | Hard? |
+|---|---|---|---|
+| **1. Audio level** | mic open *while* speaker plays; two audio channels at once | **every** voice app, even Siri | trivial |
+| **2. Interaction level** | reacts while you talk (barge-in, "mhm") — but via an **external VAD** that detects your speech and cuts TTS playback | FireRedChat, DuplexCascade, GLM-4-Voice, most "full-duplex" demos | plumbing |
+| **3. Model level** | **one model** co-models both audio streams every ~80ms frame and *itself* decides when to speak / listen / interrupt — **no VAD gate** | Moshi, PersonaPlex, Hertz-dev, Thinking Machines, OpenAI AVM | **research** |
+
+A level-2 system's LLM does **not** hear you while it speaks. Its loop is
+`you talk → VAD notices → STOP tts → ASR → LLM → new reply` — turn-by-turn, an external
+bouncer doing the timing. A level-3 model hears itself *and* you continuously and the
+interrupt logic lives **inside the model**, not in glue code.
+
+**Three quick tests for any "full-duplex" claim:** (1) does it need an external VAD to
+interrupt? (2) does the LLM keep listening while it speaks, or restart per turn? (3) is
+the barge-in inside the model or in the surrounding code? Level 3 only if: no VAD, model
+listens continuously, logic in the model.
+
+### The only genuinely level-3 (joint dual-stream) models that exist
+
+- **Moshi** (Kyutai) — the open reference; Helium-7B + Mimi, dual-stream RQ-Transformer. CC-BY-4.0.
+- **PersonaPlex** (NVIDIA) — a Moshi finetune; same architecture, adds voice/role control.
+- **Thinking Machines Interaction Model** — **closed**; our conceptual target, no code/weights.
+- **Hertz-dev** — also genuine joint dual-stream (Apache), but inference-only, no train code.
+
+Everything else in Table A is inference-only, codec-free-and-unproven, or a research paper
+with no usable code. **Nothing here is droppable-in under our constraints** (Apache-clean,
+frozen Qwen backbone, our own Mimi-based heads). Moshi/PersonaPlex are Helium-7B, not Qwen,
+and their weights aren't a path to *our* model — they're references for the architecture.
+
+> **Therefore: we still have to train our own.** There is no off-the-shelf level-3 model
+> we can just adopt. The full-duplex behavior comes only from training the dual-stream
+> objective into *our* stack — that is the work, and it is not optional. Anything that
+> looks like a shortcut (FireRedChat, DuplexCascade, any VAD-glue) is level 2 and is not
+> the thing we are building.
+
 ### A. TRUE full-duplex (joint dual-stream, native barge-in) — the real targets
 
 | Model | Backbone / codec | License | Train code? | Notes |
