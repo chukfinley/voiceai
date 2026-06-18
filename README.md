@@ -67,6 +67,7 @@ full-duplex.** Listed here so we never mistake one for the target.
 | **GLM-4-Voice** | end-to-end zh/en speech LLM | Apache code / restricted weights | Half-duplex + external VAD. |
 | **LLaMA-Omni / LLaMA-Omni2** | streaming speech chat | non-commercial weights | Streaming TTS + VAD, turn-based. (Stage-2 pattern — separate speech head on **frozen** LLM hidden states — is worth stealing for our frozen-backbone audio-out.) |
 | **DuplexCascade** (Interspeech 2026) | VAD-free **cascade** ASR→LLM→TTS, chunk-wise "micro-turns" + control tokens | open-source (paper) | Cascade, not joint co-modeling — the exact ASR→LLM→TTS pipeline this repo rejects. VAD-free ≠ full-duplex. Paper [arXiv:2603.09180](https://arxiv.org/abs/2603.09180). |
+| **FireRedChat** (FireRed) | **serving framework**: LiveKit RTC + streaming ASR/TTS + pVAD + turn-detector, pluggable LLM | Apache-2.0 | Not a model — orchestration cascade with external VAD. Its pVAD + turn-detector are usable as **offline data-labeling / barge-in-eval tools only**. [github.com/FireRedTeam/FireRedChat](https://github.com/FireRedTeam/FireRedChat). |
 | **Step-Audio / Step-Audio 2 mini** | speech chat + tool calls | mixed / Apache (2-mini) | Turn-based, external VAD. |
 | **VITA-Audio** | Qwen2.5-7B speech | non-commercial | Turn-based MCTP. |
 | **Qwen2.5-Omni / Qwen3-Omni** | omni (audio+vision+text) | Apache-2.0 | Half-duplex Thinker-Talker. |
